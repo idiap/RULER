@@ -1,0 +1,37 @@
+fixture_id: http-ingestion-adversarial-v1
+scenarios:
+  - id: redirect-to-document
+    requests:
+      - url: https://fixture.invalid/start
+        status: 302
+        location: https://fixture.invalid/policy.pdf
+      - url: https://fixture.invalid/policy.pdf
+        status: 200
+        content_type: application/pdf
+        body_token: minimal_pdf
+  - id: redirect-loop
+    requests:
+      - url: https://loop.invalid/a
+        status: 302
+        location: https://loop.invalid/b
+      - url: https://loop.invalid/b
+        status: 302
+        location: https://loop.invalid/a
+  - id: changed-bytes-same-url
+    requests:
+      - url: https://fixture.invalid/versioned.pdf
+        status: 200
+        etag: v1
+        body_token: policy_v1
+      - url: https://fixture.invalid/versioned.pdf
+        status: 200
+        etag: v2
+        body_token: policy_v2
+  - id: retry-and-partial-body
+    requests:
+      - url: https://fixture.invalid/rate-limited.pdf
+        status: 429
+        retry_after: "2"
+      - url: https://fixture.invalid/rate-limited.pdf
+        status: 206
+        content_range: bytes 0-10/100

@@ -1,0 +1,20 @@
+# SPDX-FileCopyrightText: Copyright © 2026 Idiap Research Institute <contact@idiap.ch>
+# SPDX-FileContributor: André Freitas <andre.freitas@idiap.ch>
+# SPDX-License-Identifier: LicenseRef-Idiap-Research-Education
+
+roots:
+  - path: skills
+    classification: runtime
+    binding_required: true
+  - path: proj_skills
+    classification: project_only
+    binding_required: false
+    lifecycle_rationale: Human-facing project workbench; never a runtime dependency.
+  - path: .opencode/skills
+    classification: client_wrapper
+    binding_required: false
+    canonical_target: skills
+  - path: .claude/skills
+    classification: client_wrapper
+    binding_required: false
+    canonical_target: skills

@@ -1,0 +1,8 @@
+# SPDX-FileCopyrightText: Copyright © 2026 Idiap Research Institute <contact@idiap.ch>
+# SPDX-FileContributor: André Freitas <andre.freitas@idiap.ch>
+# SPDX-License-Identifier: LicenseRef-Idiap-Research-Education
+
+interface:
+  display_name: "Summarize KB Statistics"
+  short_description: "Report KB and processed-document statistics"
+  default_prompt: "Use $summarize-kb-statistics to generate current descriptive statistics for the KB and processed documents."

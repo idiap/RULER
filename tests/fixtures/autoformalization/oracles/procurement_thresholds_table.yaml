@@ -1,0 +1,34 @@
+case_id: procurement_thresholds_table
+expected_disposition: candidate_review_required
+semantic_invariants:
+  - CHF 10000 belongs to the one-quotation tier
+  - CHF 10001 through CHF 50000 inclusive require three independent quotations and Finance approval
+  - emergency waives only the quotation requirement and only with recorded CFO approval
+  - emergency does not waive budget or anti-splitting controls
+  - related orders in a rolling 30-day period are aggregated before threshold evaluation
+  - a blank table cell is not numeric zero
+required_mutations:
+  - quantity
+  - connective
+  - exception
+  - temporal
+  - polarity
+behavioral_cases:
+  - id: amount_10000_one_quote_budget_available
+    expected: purchase_releasable
+  - id: amount_10001_two_quotes_finance_approved
+    expected: purchase_not_releasable
+  - id: amount_50000_three_quotes_finance_approved
+    expected: purchase_releasable
+  - id: amount_50001
+    expected: outside_formalized_tiers
+  - id: emergency_without_cfo
+    expected: quotation_requirement_not_waived
+  - id: emergency_with_cfo_over_budget
+    expected: purchase_not_releasable
+  - id: related_6000_orders_within_30_days
+    expected: aggregate_12000_tier_applies
+forbidden_claims:
+  - emergency waives every control
+  - CHF 50001 is approved by an invented tier
+  - greedy selection is an optimization proof

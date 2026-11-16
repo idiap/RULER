@@ -1,0 +1,8 @@
+# SPDX-FileCopyrightText: Copyright © 2026 Idiap Research Institute <contact@idiap.ch>
+# SPDX-FileContributor: André Freitas <andre.freitas@idiap.ch>
+# SPDX-License-Identifier: LicenseRef-Idiap-Research-Education
+
+interface:
+  display_name: "Resource Cost Objective Explainer"
+  short_description: "Trace portfolio cost objectives to evidence."
+  default_prompt: "Use $resource-cost-objective-explainer to explain where this portfolio objective and cost comparison come from."

@@ -1,0 +1,13 @@
+{
+  "name": "ruler",
+  "owner": {
+    "name": "Idiap Research Institute"
+  },
+  "plugins": [
+    {
+      "name": "ruler",
+      "source": "./",
+      "description": "Prepare knowledge and requests, execute reasoning, and retrieve RULER product results."
+    }
+  ]
+}

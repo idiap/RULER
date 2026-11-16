@@ -1,0 +1,23 @@
+# SPDX-FileCopyrightText: Copyright © 2026 Idiap Research Institute <contact@idiap.ch>
+# SPDX-FileContributor: André Freitas <andre.freitas@idiap.ch>
+# SPDX-License-Identifier: LicenseRef-Idiap-Research-Education
+
+generative_api:
+  config_path_env: RULER_GENAI_CONFIG
+  fallback_config_path: data/reference/generative_api_config.yaml
+  provider: azure_openai
+  provider_env: RULER_GENAI_PROVIDER
+  model: gpt-5.5
+  model_env: RULER_GENAI_MODEL
+  api_key_env: AZURE_OPENAI_API_KEY
+  api_key_env_selector: RULER_GENAI_API_KEY_ENV
+  local_secret_config_path: config/live_mcp_web_demo.local.yaml
+  local_secret_config_note: Optional gitignored YAML override containing generative_api.api_key.
+  endpoint: https://lunarflow-resource.services.ai.azure.com/openai/v1/responses
+  wire_api: responses
+  auth_header: api-key
+  api_version_query_required: false
+  policy:
+    no_provider_secrets_in_browser: true
+    redact_provider_config_in_api_responses: true
+    allow_network_default: true

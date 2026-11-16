@@ -1,0 +1,39 @@
+# SPDX-FileCopyrightText: Copyright © 2026 Idiap Research Institute <contact@idiap.ch>
+# SPDX-FileContributor: André Freitas <andre.freitas@idiap.ch>
+# SPDX-License-Identifier: LicenseRef-Idiap-Research-Education
+
+translations:
+  maintenance_power_off:
+    title: Electrical isolation
+    statement: Before removing the panel, the technician must disconnect the power
+      supply.
+    predicates:
+    - power_disconnected_before_panel_removal(Technician)
+    constraints:
+    - technician_duty
+    - before_panel_removal
+glossary:
+- term_id: power_supply
+  source_language: fr
+  source_term: alimentation
+  preferred_english: power supply
+  literal_english: supply
+  domain: technical_support
+  usage_note: Explicitly synthetic maintenance example.
+  do_not_translate: false
+  review_status: fixture
+  source_span_ids:
+  - maintenance_power_off
+predicates:
+- term_id: power_supply
+  source_term: alimentation
+  preferred_english: power supply
+  predicate: power_disconnected_before_panel_removal/1
+  predicate_role: duty
+  source_span_ids:
+  - maintenance_power_off
+  target_rule_files: []
+  status: candidate
+span_term_ids:
+  maintenance_power_off:
+  - power_supply

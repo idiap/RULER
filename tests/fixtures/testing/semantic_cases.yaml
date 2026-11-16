@@ -1,0 +1,29 @@
+fixture_id: semantic-policy-cases-v1
+cases:
+  - id: nested-exclusion-exception
+    conditions: [true, true]
+    excluded: true
+    exception_to_exclusion: true
+    claimed: "2500.00"
+    service_fee: "500.00"
+    limit: "1500.00"
+    expected_eligible: true
+    expected_amount: "1500.00"
+  - id: exclusion-without-exception
+    conditions: [true]
+    excluded: true
+    exception_to_exclusion: false
+    claimed: "2500.00"
+    service_fee: "500.00"
+    limit: "1500.00"
+    expected_eligible: false
+    expected_amount: "0.00"
+  - id: unmet-condition
+    conditions: [true, false]
+    excluded: false
+    exception_to_exclusion: false
+    claimed: "500.00"
+    service_fee: "100.00"
+    limit: "1000.00"
+    expected_eligible: false
+    expected_amount: "0.00"

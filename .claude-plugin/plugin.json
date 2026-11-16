@@ -1,0 +1,15 @@
+{
+  "name": "ruler",
+  "version": "1.0.0",
+  "description": "Prepare knowledge and requests, execute reasoning, and retrieve RULER product results.",
+  "author": {
+    "name": "Idiap Research Institute"
+  },
+  "license": "LicenseRef-Idiap-Research-Education",
+  "skills": [
+    "./plugin/skills/ruler-execute-reasoning",
+    "./plugin/skills/ruler-prepare-knowledge",
+    "./plugin/skills/ruler-prepare-request",
+    "./plugin/skills/ruler-retrieve-results"
+  ]
+}

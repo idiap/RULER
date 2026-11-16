@@ -1,0 +1,8 @@
+# SPDX-FileCopyrightText: Copyright © 2026 Idiap Research Institute <contact@idiap.ch>
+# SPDX-FileContributor: André Freitas <andre.freitas@idiap.ch>
+# SPDX-License-Identifier: LicenseRef-Idiap-Research-Education
+
+interface:
+  display_name: "Recommendation Argument Composer"
+  short_description: "Render certified decision arguments."
+  default_prompt: "Use $recommendation-argument-composer to turn this validated DecisionArgumentCertificate into a customer-readable recommendation argument."

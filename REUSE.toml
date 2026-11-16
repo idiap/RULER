@@ -1,0 +1,34 @@
+# SPDX-FileCopyrightText: Copyright © 2026 Idiap Research Institute <contact@idiap.ch>
+# SPDX-FileContributor: Danilo Gusicuma <danilo.gusicuma@idiap.ch>
+# SPDX-License-Identifier: LicenseRef-Idiap-Research-Education
+
+version = 1
+
+[[annotations]]
+path = [
+    "LICENSE",
+    "codex-app-workbench/LICENSE",
+    "codex-app-workbench/*.json",
+    "infra/postgres/bootstrap.sql.example",
+    "proj_skills/**/SKILL.md",
+    "skills/**/SKILL.md",
+    "tests/fixtures/autoformalization/sources/*.txt"
+]
+precedence = "aggregate"
+SPDX-FileCopyrightText = "Copyright © 2026 Idiap Research Institute <contact@idiap.ch>"
+SPDX-License-Identifier = "LicenseRef-Idiap-Research-Education"
+SPDX-FileContributor = ["André Freitas <andre.freitas@idiap.ch>"]
+SPDX-FileComment = "Neuro-symbolic AI Group"
+
+[[annotations]]
+path = [
+    ".claude-plugin/*.json",
+    ".codex-plugin/plugin.json",
+    "plugin/skills/*/SKILL.md",
+    "skills/runtime/mcp-server-operator/SKILL.md"
+]
+precedence = "override"
+SPDX-FileCopyrightText = "Copyright © 2026 Idiap Research Institute <contact@idiap.ch>"
+SPDX-License-Identifier = "LicenseRef-Idiap-Research-Education"
+SPDX-FileContributor = ["Danilo Gusicuma <danilo.gusicuma@idiap.ch>"]
+SPDX-FileComment = "Neuro-symbolic AI Group"

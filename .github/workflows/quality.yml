@@ -1,0 +1,165 @@
+# SPDX-FileCopyrightText: Copyright © 2026 Idiap Research Institute <contact@idiap.ch>
+# SPDX-FileContributor: André Freitas <andre.freitas@idiap.ch>
+# SPDX-License-Identifier: LicenseRef-Idiap-Research-Education
+
+name: RULER quality
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: quality-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+permissions:
+  contents: read
+
+env:
+  TZ: UTC
+  LANG: C.UTF-8
+  LC_ALL: C.UTF-8
+  PYTHONHASHSEED: "0"
+
+jobs:
+  mcp-postgres:
+    name: MCP PostgreSQL persistence
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_USER: ruler_test
+          POSTGRES_PASSWORD: ruler_test
+          POSTGRES_DB: ruler_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U ruler_test -d ruler_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      RULER_TEST_DATABASE_URL: postgresql+pg8000://ruler_test:ruler_test@localhost:5432/ruler_test
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: true
+      - name: Restore pinned development evidence
+        uses: ./.github/actions/development-evidence
+      - uses: astral-sh/setup-uv@v6
+        with:
+          version: "0.8.11"
+          enable-cache: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13.5"
+      - run: uv sync --extra dev --locked
+      - name: Prepare ignored local agent defaults
+        run: uv run ruler prepare agent-config
+      - run: uv run pytest -q tests/runtime/test_mcp_postgres.py tests/runtime/test_mcp_http.py tests/runtime/test_mcp_deployment.py
+
+  container:
+    name: Portable MCP container
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+          lfs: true
+      - name: Restore pinned development evidence
+        uses: ./.github/actions/development-evidence
+      - name: Build and exercise the container with disposable PostgreSQL
+        run: |
+          set -euo pipefail
+          docker build -t ruler-mcp:ci .
+          python scripts/check_container.py ruler-mcp:ci
+
+  platform-smoke:
+    name: Platform smoke (${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04, macos-14, windows-2022]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: true
+      - name: Restore pinned development evidence
+        uses: ./.github/actions/development-evidence
+      - uses: astral-sh/setup-uv@v6
+        with:
+          version: "0.8.11"
+          enable-cache: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13.5"
+      - run: uv sync --extra dev --locked
+      - name: Prepare ignored local agent defaults
+        run: uv run ruler prepare agent-config
+      - run: uv run ruler validate cross-platform
+      - run: uv run ruler validate codex
+      - run: uv run ruler validate plugins
+      - run: uv run ruler validate claude-code
+      - run: uv run ruler validate opencode
+      - run: uv run ruler validate api-config
+      - run: uv run ruler validate mcp-server
+      - run: uv run pytest -q tests/runtime/test_cross_platform.py tests/runtime/test_codex_bridge.py tests/runtime/test_claude_code_bridge.py tests/runtime/test_opencode_bridge.py tests/runtime/test_api_config.py tests/runtime/test_mcp_server.py tests/runtime/test_plugins.py
+
+  deterministic:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: true
+      - name: Restore pinned development evidence
+        uses: ./.github/actions/development-evidence
+      - uses: astral-sh/setup-uv@v6
+        with:
+          version: "0.8.11"
+          enable-cache: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13.5"
+      - run: uv sync --extra dev --locked
+      - name: Prepare ignored local agent defaults
+        run: uv run ruler prepare agent-config
+      - name: Install independent Prolog solver
+        run: sudo apt-get update && sudo apt-get install -y swi-prolog-nox
+      - name: Install browser test dependencies
+        run: uv run playwright install --with-deps chromium
+      - name: Prepare generated validation inputs
+        run: uv run ruler prepare checks
+      - run: uv run ruler validate workflow-registry
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: codex-app-workbench/package-lock.json
+      - run: npm --prefix codex-app-workbench ci --ignore-scripts
+      # Disclosure helpers and private agent settings are intentionally local-only.
+      - run: npm --prefix codex-app-workbench run check
+      - run: npm --prefix codex-app-workbench test
+      - run: uv run black --check .
+      - run: uv run pyright
+      - run: uv run vulture .
+      - name: Run project validation
+        run: uv run ruler validate all
+      - name: Upload validation evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: deterministic-evidence
+          path: build/ruler
+          if-no-files-found: ignore
+
+  # Live source and Codex quality profiles are deliberately absent from PR CI.
+  # Scheduled/release automation invokes the registered, budgeted workflows with
+  # separately scoped credentials and uploads their immutable result manifests.

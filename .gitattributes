@@ -1,0 +1,32 @@
+# SPDX-FileCopyrightText: Copyright © 2026 Idiap Research Institute <contact@idiap.ch>
+# SPDX-FileContributor: André Freitas <andre.freitas@idiap.ch>
+# SPDX-License-Identifier: LicenseRef-Idiap-Research-Education
+
+*.pdf binary
+data/sources/raw/_content_addressed/objects/** binary
+# Downloaded and generated evidence is byte-preserved for digest verification.
+data/sources/raw/** -whitespace
+data/sources/extracted/** -whitespace
+data/operations/** -whitespace
+# Third-party source documents, extracted text, and bundled evidence are outside SD scope.
+data export-ignore
+kb export-ignore
+refs export-ignore
+# Local preparation and agent configuration never belong in disclosure exports.
+.idiap-sd export-ignore
+AGENTS.md export-ignore
+AGENTS.md.license export-ignore
+CLAUDE.md export-ignore
+CLAUDE.md.license export-ignore
+.claude export-ignore
+.codex export-ignore
+.agents export-ignore
+.opencode export-ignore
+GEMINI.md export-ignore
+GEMINI.md.license export-ignore
+.gemini export-ignore
+.cursor export-ignore
+.cursorrules export-ignore
+.cursorrules.license export-ignore
+.github/copilot-instructions.md export-ignore
+.github/copilot-instructions.md.license export-ignore

@@ -1,0 +1,28 @@
+case_id: coreference_open_texture
+expected_disposition: blocked_ambiguity
+semantic_invariants:
+  - supplier is the notification actor and purchaser is the recipient
+  - five business days is not five calendar days
+  - purchaser prior knowledge is an exception to the notification obligation
+  - the antecedent of it in the concealment sentence is unresolved
+  - reasonable measures, undue delay, and where appropriate have no supplied operational definitions
+  - safe independent units may remain candidates but query-affecting ambiguity blocks activation
+required_mutations:
+  - actor
+  - coreference
+  - temporal
+  - exception
+  - modality
+behavioral_cases:
+  - id: breach_discovered_no_prior_knowledge
+    expected: notification_obligation_candidate
+  - id: purchaser_already_knew
+    expected: notification_exception_candidate
+  - id: concealed_it
+    expected: unresolved_coreference_blocks_counter_exception
+  - id: reasonable_measures
+    expected: non_formalizable_without_definition
+forbidden_claims:
+  - invented antecedent for it
+  - invented numeric meaning for undue delay
+  - reasonable means whatever the solver selects

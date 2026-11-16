@@ -1,0 +1,12 @@
+- span_id: maintenance_power_off
+  clause_id: maintenance_clause_1
+  source_id: synthetic_maintenance_manual
+  page_start: 1
+  page_end: 1
+  section: '1'
+  title: Isolation électrique
+  text: Avant de retirer le panneau, le technicien doit couper l’alimentation.
+  text_sha256: sha256:6c999154329caada573153337b2b78379862e64469f1f508ddb3884cffd8f509
+  extraction_method: synthetic_fixture
+  selector:
+    section: '1'

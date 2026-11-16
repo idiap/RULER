@@ -1,0 +1,8 @@
+# SPDX-FileCopyrightText: Copyright © 2026 Idiap Research Institute <contact@idiap.ch>
+# SPDX-FileContributor: André Freitas <andre.freitas@idiap.ch>
+# SPDX-License-Identifier: LicenseRef-Idiap-Research-Education
+
+interface:
+  display_name: "Verify KB Consistency"
+  short_description: "Audit KB coherence before onboarding advances"
+  default_prompt: "Use $verify-kb-consistency to audit the current KB release and onboarding checkpoint."

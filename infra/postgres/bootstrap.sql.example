@@ -1,0 +1,14 @@
+-- Run once as the database administrator. Generate distinct strong passwords
+-- and replace the placeholders securely before execution.
+-- Deliberately fails if these names already exist: never reassign existing data.
+CREATE ROLE ruler_migrator LOGIN NOCREATEDB NOCREATEROLE NOREPLICATION NOBYPASSRLS
+  PASSWORD 'REPLACE_WITH_NEW_MIGRATOR_PASSWORD';
+CREATE ROLE ruler_runtime LOGIN NOCREATEDB NOCREATEROLE NOREPLICATION NOBYPASSRLS
+  PASSWORD 'REPLACE_WITH_NEW_RUNTIME_PASSWORD';
+-- PostgreSQL 16 requires SET ROLE ability to assign another role as DB owner.
+-- This temporary grant is to the administrator, not to either RULER login.
+GRANT ruler_migrator TO CURRENT_USER;
+CREATE DATABASE ruler OWNER ruler_migrator;
+REVOKE ALL PRIVILEGES ON DATABASE ruler FROM PUBLIC;
+GRANT CONNECT ON DATABASE ruler TO ruler_runtime;
+REVOKE ruler_migrator FROM CURRENT_USER;

@@ -1,0 +1,266 @@
+# SPDX-FileCopyrightText: Copyright © 2026 Idiap Research Institute <contact@idiap.ch>
+# SPDX-FileContributor: André Freitas <andre.freitas@idiap.ch>
+# SPDX-License-Identifier: LicenseRef-Idiap-Research-Education
+
+catalogue_id: ruler-deterministic-and-generative-tests
+version: 1.0.0
+owners:
+  - kb-quality
+  - ingestion-platform
+  - security
+known_controls:
+  - TST-007
+  - TST-008
+  - TST-009
+  - TST-010
+  - TST-011
+  - TST-012
+  - TST-013
+  - TST-014
+  - TST-015
+  - TST-016
+  - TST-017
+  - TST-018
+  - TST-019
+  - TST-020
+required_p0_controls:
+  - TST-007
+  - TST-008
+  - TST-009
+  - TST-010
+  - TST-011
+  - TST-012
+  - TST-013
+  - TST-014
+  - TST-015
+  - TST-016
+  - TST-017
+  - TST-018
+  - TST-019
+  - TST-020
+required_semantic_categories:
+  - negation
+  - modality
+  - conditions
+  - exceptions
+  - numbers_units_dates
+  - territory_scope
+  - precedence_references
+cases:
+  - case_id: TC-CATALOGUE-001
+    title: Catalogue contracts and P0 semantic coverage
+    owner: kb-quality
+    controls: [TST-007]
+    risk_class: critical
+    lifecycle_stage: test-governance
+    engine: deterministic
+    oracle_type: exact
+    fixtures: []
+    expected_assertions:
+      - reject duplicate IDs, unknown owners, dangling controls, and unhashed fixtures
+      - cover negation and modality mutations
+      - cover conditions and exceptions in both directions
+      - preserve numbers_units_dates exactly
+      - preserve territory_scope boundaries
+      - preserve precedence_references and reject dangling edges
+    output_schema: ruler.testing.catalogue.CatalogueIssue[]
+    timeout_seconds: 10
+    retries: 0
+    budget: local-cpu-only
+    cache_policy: exact-input-digest
+    run_profiles: [local, pr, integration, release]
+    retention_days: 365
+    blocking_tier: pr
+    coverage_modes: [positive, negative, boundary, stale_drift, recovery]
+  - case_id: TC-HARNESS-001
+    title: Isolated reproducible and resumable pipeline harness
+    owner: ingestion-platform
+    controls: [TST-008]
+    risk_class: critical
+    lifecycle_stage: all
+    engine: deterministic
+    oracle_type: invariant
+    fixtures: []
+    expected_assertions:
+      - validators are read-only and worker scheduling preserves semantic bytes
+    output_schema: pytest.assertion
+    timeout_seconds: 30
+    retries: 0
+    budget: local-cpu-only
+    cache_policy: disabled
+    run_profiles: [local, pr, integration]
+    retention_days: 365
+    blocking_tier: pr
+    coverage_modes: [positive, negative, boundary, recovery]
+  - case_id: TC-MUTATION-001
+    title: Contract, metamorphic, differential, and high-risk mutation controls
+    owner: kb-quality
+    controls: [TST-009, TST-011]
+    risk_class: critical
+    lifecycle_stage: formalization
+    engine: deterministic
+    oracle_type: differential
+    fixtures:
+      - path: tests/fixtures/testing/semantic_cases.yaml
+        sha256: sha256:37b247c28dec4ce46ea1534599b08e54b7ef18fba5e20b325f57f3a8842b2079
+        oracle_authorship: independent
+    expected_assertions:
+      - kill lost negation, removed exceptions, broadened scope, and changed numeric limits
+    output_schema: pytest.assertion
+    timeout_seconds: 30
+    retries: 0
+    budget: local-cpu-only
+    cache_policy: exact-input-digest
+    run_profiles: [local, pr, integration, release]
+    retention_days: 730
+    blocking_tier: release
+    coverage_modes: [positive, negative, boundary, stale_drift, recovery]
+  - case_id: TC-HTTP-001
+    title: Offline crawling failures and redirect controls
+    owner: ingestion-platform
+    controls: [TST-010]
+    risk_class: critical
+    lifecycle_stage: source-retrieval
+    engine: deterministic
+    oracle_type: exact
+    fixtures:
+      - path: tests/fixtures/testing/http_scenarios.yaml
+        sha256: sha256:98df3b74b1a66c3abc341d28733d118183ae7125d8684fc4ebe2f45a2ac39a86
+        oracle_authorship: independent
+    expected_assertions:
+      - bound redirects, retries, partial bodies, changed bytes, and request counts
+    output_schema: pytest.assertion
+    timeout_seconds: 30
+    retries: 0
+    budget: zero-network
+    cache_policy: disabled
+    run_profiles: [local, pr, integration]
+    retention_days: 365
+    blocking_tier: pr
+    coverage_modes: [positive, negative, boundary, stale_drift, recovery]
+  - case_id: TC-RECOVERY-001
+    title: Exact dependency invalidation and atomic recovery
+    owner: ingestion-platform
+    controls: [TST-012]
+    risk_class: critical
+    lifecycle_stage: publication
+    engine: deterministic
+    oracle_type: invariant
+    fixtures: []
+    expected_assertions:
+      - invalidate exactly dependency descendants and preserve atomic canonical files
+    output_schema: pytest.assertion
+    timeout_seconds: 30
+    retries: 0
+    budget: local-cpu-only
+    cache_policy: disabled
+    run_profiles: [pr, integration, release]
+    retention_days: 730
+    blocking_tier: release
+    coverage_modes: [positive, negative, boundary, stale_drift, recovery]
+  - case_id: TC-SECURITY-001
+    title: Source URL, path, symlink, and payload boundary controls
+    owner: security
+    controls: [TST-013]
+    risk_class: critical
+    lifecycle_stage: source-retrieval
+    engine: deterministic
+    oracle_type: invariant
+    fixtures:
+      - path: tests/fixtures/testing/security_cases.yaml
+        sha256: sha256:b0b4fd9e5a432fbe0ea7001c62471cbfeca1e0b779aab991b84247a4455602c2
+        oracle_authorship: independent
+    expected_assertions:
+      - reject private addresses, URL credentials, traversal, symlinks, and oversized payloads
+    output_schema: pytest.assertion
+    timeout_seconds: 30
+    retries: 0
+    budget: zero-network
+    cache_policy: disabled
+    run_profiles: [local, pr, integration, release]
+    retention_days: 730
+    blocking_tier: release
+    coverage_modes: [positive, negative, boundary, recovery]
+  - case_id: TC-AGGREGATE-001
+    title: Aggregate validation completeness and read-only execution
+    owner: kb-quality
+    controls: [TST-020]
+    risk_class: critical
+    lifecycle_stage: release
+    engine: deterministic
+    oracle_type: exact
+    fixtures: []
+    expected_assertions:
+      - classify every gate and never generate before validation
+    output_schema: validator.aggregate-report.v1
+    timeout_seconds: 3600
+    retries: 0
+    budget: release-cpu-budget
+    cache_policy: disabled
+    run_profiles: [integration, release]
+    retention_days: 730
+    blocking_tier: release
+    coverage_modes: [positive, negative, boundary, stale_drift, recovery]
+  - case_id: TC-GENERATIVE-001
+    title: Bounded Codex KB-quality evaluation, calibration, consensus, and audit controls
+    owner: kb-quality
+    controls: [TST-014, TST-015, TST-016, TST-017, TST-018, TST-019]
+    risk_class: critical
+    lifecycle_stage: release
+    engine: generative
+    oracle_type: rubric
+    fixtures:
+      - path: data/reference/generative_quality/cases.yaml
+        sha256: sha256:c447479e9f4a07d881cb8a8d55109b20e9249c4ddb51aabfc793d8dcd5f28047
+        oracle_authorship: independent
+      - path: data/reference/generative_quality/rubric.yaml
+        sha256: sha256:3e4a0c7039ce20ee214be64575ecb3057da4f0405e7d5d1ec4f542f1f65501f0
+        oracle_authorship: independent
+      - path: data/reference/generative_quality/calibration.yaml
+        sha256: sha256:fd7f227185d6414b26b07a3317dd09a61627a7d8512cdd9a1724c12e7b6483fd
+        oracle_authorship: independent
+      - path: data/reference/generative_quality/verdict.schema.json
+        sha256: sha256:1e934bda97bde4bb180b301e5a201d9252c370fb4884c29f7ae87e3c476df06e
+        oracle_authorship: independent
+      - path: tests/fixtures/translation/source_spans.yaml
+        sha256: sha256:3ab764d4ed966441d80b0d32ebea517e3c42e815e5c54393c50bea61a607cdb0
+        oracle_authorship: source_evidence
+    expected_assertions:
+      - detect omissions, unsupported additions, negation, modality, conditions, exceptions, numbers_units_dates, territory_scope, and precedence_references
+      - reject malformed output, unknown evidence, budget exhaustion, and write attempts
+      - preserve immutable audit identity and automatically block disagreement or indeterminate outcomes
+    output_schema: data/reference/generative_quality/verdict.schema.json
+    timeout_seconds: 600
+    retries: 1
+    budget: profile-declared-calls-input-bytes-wall-time
+    cache_policy: exact-input-digest
+    run_profiles: [pr, release]
+    retention_days: 730
+    blocking_tier: release
+    coverage_modes: [positive, negative, boundary, stale_drift, recovery]
+  - case_id: TC-GENERATIVE-002
+    title: Source-locked generative autoformalization across realistic source styles
+    owner: kb-quality
+    controls: [TST-014, TST-015, TST-016, TST-017, TST-018, TST-019]
+    risk_class: critical
+    lifecycle_stage: formalization
+    engine: generative
+    oracle_type: rubric
+    fixtures:
+      - path: tests/fixtures/autoformalization/cases.yaml
+        sha256: sha256:78d57489d29644ea9f993f6b821d8ae895cd1ee91a30ad6ff897a057317443e2
+        oracle_authorship: independent
+    expected_assertions:
+      - authenticate exact source bytes and source spans before accepting candidate semantics
+      - exercise actor, modality, polarity, connective, exception, numbers_units_dates, temporal, coreference, precedence_references, and source-link mutations
+      - constrain generation to reviewed predicates and keep all generated logic candidate-only
+      - execute unmocked provider smoke cases and reject malformed or semantically lossy output
+    output_schema: AutoformalizationDraft.v1
+    timeout_seconds: 900
+    retries: 2
+    budget: two-bounded-live-producer-calls
+    cache_policy: disabled
+    run_profiles: [pr, integration, release]
+    retention_days: 730
+    blocking_tier: integration
+    coverage_modes: [positive, negative, boundary, stale_drift, recovery]

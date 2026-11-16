@@ -1,0 +1,173 @@
+fixture_id: realistic-autoformalization-cases-v1
+version: 1
+producer_input_policy:
+  include_fields:
+  - case_id
+  - domain_id
+  - source_language
+  - target_language
+  - source_style
+  - task
+  - allowed_predicates
+  - sources
+  exclude_fields:
+  - oracle
+  - expected_disposition
+  - semantic_invariants
+  - behavioral_cases
+  - required_mutations
+  - forbidden_claims
+  oracle_visibility: evaluator_only
+cases:
+- case_id: legal_conditional_exception_permission
+  domain_id: legal
+  source_language: en
+  target_language: en
+  source_style: numbered_normative_prose
+  task: Build a source-grounded candidate semantic basis and typed logical projection
+    for later independent legal review.
+  allowed_predicates:
+  - authority_applies
+  - supports_claim
+  - defeats_claim
+  - concept_instance
+  - candidate_conclusion
+  sources:
+  - source_id: fictional_model_act_article_12
+    path: tests/fixtures/autoformalization/sources/legal_conditional_exception_permission.txt
+    sha256: sha256:7a1117e87b55e02696ddfc23e361474c08431a0bdad42123d5f78b6e0d388b83
+    document_kind: statute
+    authority_status: synthetic_non_doctrinal
+    anchors:
+    - Article 12.1
+    - Article 12.2
+    - Article 12.3
+  oracle:
+    path: tests/fixtures/autoformalization/oracles/legal_conditional_exception_permission.yaml
+    sha256: sha256:db7b8603b511ca9b395ed610d1d28329387fbc25022407966a8ff5be363d0226
+  required_backends:
+  - asp
+  - prolog
+  required_behavioral_perspectives:
+  - positive
+  - negative
+  - counterfactual
+  - exception
+  - boundary
+  - conflict
+- case_id: procurement_thresholds_table
+  domain_id: spending
+  source_language: en
+  target_language: en
+  source_style: mixed_table_and_operational_prose
+  task: Formalize threshold, approval, emergency, anti-splitting, rolling-window,
+    and budget controls as typed candidate rules.
+  allowed_predicates:
+  - budget_available
+  - purchase_amount
+  - quote_count
+  - approval_present
+  - exception_approved
+  - split_purchase_pattern
+  - purchase_releasable
+  sources:
+  - source_id: alpine_research_procurement_policy
+    path: tests/fixtures/autoformalization/sources/procurement_thresholds_table.txt
+    sha256: sha256:24d235946929e336d61f8c8859aa1b219690cb9857f78dcf9e146556b1b67ecf
+    document_kind: procurement_policy
+    authority_status: synthetic_operational
+    anchors:
+    - threshold_table
+    - emergency_paragraph
+    - anti_splitting_sentence
+    - budget_sentence
+  oracle:
+    path: tests/fixtures/autoformalization/oracles/procurement_thresholds_table.yaml
+    sha256: sha256:84057b17f4f146d85d5000f766262265579c1a72fc129b0f0c1793cb691ff276
+  required_backends:
+  - asp
+  - prolog
+  - exhaustive_reference
+  required_behavioral_perspectives:
+  - positive
+  - negative
+  - counterfactual
+  - exception
+  - boundary
+  - conflict
+- case_id: regulatory_temporal_amendment
+  domain_id: regulatory
+  source_language: en
+  target_language: en
+  source_style: versioned_rule_and_cross_document_amendment
+  task: Produce version-separated temporal rules with exact inclusive boundaries,
+    exception, relative deadline, and amendment precedence.
+  allowed_predicates:
+  - in_scope
+  - out_of_scope
+  - submitted_notice
+  - notice_missing
+  - within_deadline
+  - after_deadline
+  - authorized_exception
+  - regulated_quantity
+  - evaluation_outcome
+  sources:
+  - source_id: fictional_reporting_ordinance_2026
+    path: tests/fixtures/autoformalization/sources/regulatory_notice_2026.txt
+    sha256: sha256:2a65af6583dbb58d873ed8cf893b7a8e1a409393fe22b10fded7940b941870b4
+    document_kind: regulation
+    authority_status: synthetic_non_doctrinal
+    anchors:
+    - Section 8
+  - source_id: fictional_reporting_amendment_2026
+    path: tests/fixtures/autoformalization/sources/regulatory_notice_amendment_2026.txt
+    sha256: sha256:50e16e38da99cc8f059903d8e44f1ce85d2d8a2d093216a0f9d34161db68fb44
+    document_kind: regulation
+    authority_status: synthetic_non_doctrinal
+    anchors:
+    - Section 8A
+  oracle:
+    path: tests/fixtures/autoformalization/oracles/regulatory_temporal_amendment.yaml
+    sha256: sha256:ca8e673a52589822d8d5d14ac38305c6792850e3045cd6172920d2173f886851
+  required_backends:
+  - asp
+  - prolog
+  required_behavioral_perspectives:
+  - positive
+  - negative
+  - counterfactual
+  - exception
+  - boundary
+  - conflict
+- case_id: coreference_open_texture
+  domain_id: legal
+  source_language: en
+  target_language: en
+  source_style: contract_coreference_and_open_texture
+  task: Separate safe candidate units from unresolved coreference and open-texture
+    clauses; block every lossy query-affecting projection.
+  allowed_predicates:
+  - supports_claim
+  - defeats_claim
+  - concept_instance
+  - candidate_conclusion
+  sources:
+  - source_id: fictional_supply_agreement_clause_17
+    path: tests/fixtures/autoformalization/sources/coreference_open_texture.txt
+    sha256: sha256:141f6d484452dbdde13e1e43e760b81c3aa48dca54822c58e219bff05d3cd296
+    document_kind: contract
+    authority_status: synthetic_non_doctrinal
+    anchors:
+    - Clause 17
+  oracle:
+    path: tests/fixtures/autoformalization/oracles/coreference_open_texture.yaml
+    sha256: sha256:241a5ca07aa68fc0e1c130df3181e8a5690f2c2e3f3014cd6db7576cb9cea495
+  required_backends: []
+  required_behavioral_perspectives:
+  - positive
+  - negative
+  - counterfactual
+  - exception
+  - boundary
+  - conflict

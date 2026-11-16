@@ -1,0 +1,779 @@
+# SPDX-FileCopyrightText: Copyright © 2026 Idiap Research Institute <contact@idiap.ch>
+# SPDX-FileContributor: André Freitas <andre.freitas@idiap.ch>
+# SPDX-License-Identifier: LicenseRef-Idiap-Research-Education
+
+version: 1
+defaults:
+  lifecycle_status: active
+  intended_caller: developer
+  router_visibility: internal
+  local_read: true
+  local_write: true
+  external_read: false
+  external_write: false
+  network: false
+  deterministic: true
+  expected_duration: medium
+  cache_policy: content_hash
+  confirmation_required: false
+  resumable: false
+  release_tier: integration
+external_tools:
+- id: codex
+  executable: codex
+  purpose: Read-only generative content and quality evaluator.
+  version_spec: '>=0.1,<2'
+  allowed_options:
+  - exec
+  - --ephemeral
+  - --ignore-user-config
+  - --strict-config
+  - --sandbox
+  - read-only
+  - --cd
+  - --skip-git-repo-check
+  - --model
+  - --output-schema
+  - --json
+  - --output-last-message
+  - stdin
+  forbidden_options:
+  - --dangerously-bypass-approvals-and-sandbox
+  - --full-auto
+  effects:
+    local_read: true
+    local_write: false
+    external_read: false
+    external_write: false
+    network: true
+hook_policies:
+- id: resource-portfolio
+  visibility: public
+  parent_workflow: resource-portfolio-plan
+- id: source-ingestion
+  visibility: public
+  rationale: Shared lifecycle checks for registered domain workflows.
+- id: formalization-wave
+  visibility: lifecycle
+  rationale: Shared lifecycle for configured domain workflows.
+- id: clause-formalization
+  visibility: internal
+  parent_workflow: formalized-kb
+- id: feature-grounding
+  visibility: internal
+  rationale: Shared lifecycle checks for registered domain workflows.
+- id: solver-consistency
+  visibility: public
+  rationale: Shared lifecycle for configured domain workflows.
+- id: recommendation-safety
+  visibility: public
+  parent_workflow: resource-portfolio-demonstrator
+- id: communication-control
+  visibility: lifecycle
+  rationale: Shared lifecycle for configured domain workflows.
+- id: workflow-visualization
+  visibility: public
+  parent_workflow: workflow-graphs
+- id: workflow-routing
+  visibility: internal
+  parent_workflow: workflow-router
+- id: customer-demonstration
+  visibility: public
+  rationale: Shared lifecycle for configured domain workflows.
+- id: reasoning-control
+  visibility: public
+  rationale: Shared lifecycle for configured domain workflows.
+- id: translation-control
+  visibility: public
+  parent_workflow: translation-control
+- id: claude-code
+  visibility: public
+  rationale: Client bridge validation lifecycle.
+- id: opencode
+  visibility: public
+  rationale: Client bridge validation lifecycle.
+- id: cross-platform
+  visibility: public
+  rationale: Runtime portability lifecycle.
+- id: mcp-server
+  visibility: public
+  rationale: Read-only MCP runtime lifecycle.
+- id: pre-commit
+  visibility: lifecycle
+  rationale: Local deterministic commit gate.
+- id: pre-push
+  visibility: lifecycle
+  rationale: Local deterministic publication gate.
+- id: ingestion-deterministic-test
+  visibility: lifecycle
+  parent_workflow: test-deterministic
+- id: ingestion-generative-quality
+  visibility: lifecycle
+  parent_workflow: test-generative-release
+- id: cbr-case-reasoning
+  visibility: public
+  parent_workflow: cbr-case
+- id: cbr-case-library
+  visibility: lifecycle
+  parent_workflow: cbr-case-library-curation
+- id: reasoning-log
+  visibility: public
+  parent_workflow: skill-reasoning-logs
+ingestion_operations:
+- plan
+- discover
+- fetch
+- extract
+- assess-completeness
+- formalize-candidates
+- review
+- compile
+- publish
+- validate
+- replay-impacts
+command_surfaces:
+- id: prepare-checks
+  command: uv run ruler prepare checks
+  classification: lifecycle_gate
+  local_read: true
+  local_write: true
+  external_read: false
+  external_write: false
+  network: false
+  deterministic: true
+  confirmation_required: false
+- id: domain-list
+  command: uv run ruler domains list
+  classification: public
+  local_read: true
+  local_write: false
+  external_read: false
+  external_write: false
+  network: false
+  deterministic: true
+  confirmation_required: false
+- id: domain-inspection
+  command: uv run ruler domains inspect regulatory
+  classification: public
+  local_read: true
+  local_write: false
+  external_read: false
+  external_write: false
+  network: false
+  deterministic: true
+  confirmation_required: false
+- id: corpus-list
+  command: uv run ruler corpora list
+  classification: public
+  local_read: true
+  local_write: false
+  external_read: false
+  external_write: false
+  network: false
+  deterministic: true
+  confirmation_required: false
+- id: corpus-validation
+  command: uv run ruler corpora validate
+  classification: lifecycle_gate
+  local_read: true
+  local_write: false
+  external_read: false
+  external_write: false
+  network: false
+  deterministic: true
+  confirmation_required: false
+- id: corpus-schema
+  command: uv run ruler corpora schema
+  classification: public
+  local_read: true
+  local_write: false
+  external_read: false
+  external_write: false
+  network: false
+  deterministic: true
+  confirmation_required: false
+- id: regulatory-proof-evaluation
+  command: uv run ruler evaluate regulatory-proof --case open_world_unknown
+  classification: public
+  local_read: true
+  local_write: false
+  external_read: false
+  external_write: false
+  network: false
+  deterministic: true
+  confirmation_required: false
+- id: artifact-migration
+  command: uv run ruler migrate artifacts --manifest kb/manifest.yaml --release-name
+    migration-audit
+  classification: lifecycle_gate
+  local_read: true
+  local_write: false
+  external_read: false
+  external_write: false
+  network: false
+  deterministic: true
+  confirmation_required: false
+workflows:
+- id: resource-portfolio-plan
+  title: Deterministic-first resource portfolio plan
+  classification: public
+  hook: resource-portfolio
+  router_visibility: public
+  local_read: true
+  local_write: true
+  external_read: false
+  external_write: false
+  network: false
+  deterministic: true
+  expected_duration: medium
+  cache_policy: content_hash
+  confirmation_required: false
+  resumable: false
+  release_tier: integration
+  command: uv run ruler workflow resource-portfolio-plan
+  inputs:
+  - data/domains/construction_fleet/tests/evidence.yaml
+  - data/domains/construction_fleet/tests/compile.yaml
+  - data/domains/construction_fleet/tests/model.yaml
+  - data/domains/construction_fleet/tests/schedule.yaml
+  - data/domains/construction_fleet/tests/stress.yaml
+  - data/domains/construction_fleet/tests/explanation.yaml
+  outputs:
+  - build/ruler/resource_portfolio/workflow_run.yaml
+  - build/ruler/resource_portfolio/evidence.yaml
+  - build/ruler/resource_portfolio/snapshot.yaml
+  - build/ruler/resource_portfolio/compilation.yaml
+  - build/ruler/resource_portfolio/plan.yaml
+  - build/ruler/resource_portfolio/schedule.yaml
+  - build/ruler/resource_portfolio/stress.yaml
+  - build/ruler/resource_portfolio/counterfactual.yaml
+  - build/ruler/resource_portfolio/explanation.yaml
+  - build/ruler/resource_portfolio/review.yaml
+  generated_evidence:
+  - normalized operational evidence
+  - immutable snapshot
+  - SciPy profile receipt
+  - Z3 compilation status
+  - HiGHS backend receipt
+  - independent verification
+  - CP-SAT schedule receipt
+  - counterfactual re-solve
+  - trace-closed explanation
+  - pending human-review gate
+  validators:
+  - uv run ruler validate resource-portfolio
+  - uv run ruler validate deterministic-skills
+- id: resource-portfolio-demonstrator
+  title: Grounded natural-language resource portfolio demonstrator
+  classification: public
+  hook: resource-portfolio
+  router_visibility: public
+  local_read: true
+  local_write: true
+  external_read: false
+  external_write: false
+  network: true
+  deterministic: false
+  expected_duration: long
+  cache_policy: none
+  confirmation_required: false
+  resumable: false
+  release_tier: explicit
+  tools:
+  - codex
+  command: uv run ruler workflow resource-portfolio-demonstrator
+  inputs:
+  - data/domains/construction_fleet/demonstrator/alpine_station_expansion_dossier.md
+  - data/domains/construction_fleet/demonstrator/claim_manifest.yaml
+  outputs:
+  - build/ruler/resource_portfolio_demonstrator/index.html
+  - build/ruler/resource_portfolio_demonstrator/demonstrator_run.yaml
+  - build/ruler/resource_portfolio_demonstrator/formalization.yaml
+  - build/ruler/resource_portfolio_demonstrator/grounding.yaml
+  - build/ruler/resource_portfolio_demonstrator/generative_explanation.yaml
+  - build/ruler/resource_portfolio_demonstrator/workflow/workflow_run.yaml
+  generated_evidence:
+  - Codex source-locked candidate receipt
+  - bounded refinement receipt
+  - exact reviewed source-to-solver bindings
+  - Z3 compilation status
+  - HiGHS optimality receipt
+  - independent arithmetic replay
+  - CP-SAT schedule receipt
+  - stress re-solves
+  - trace-closed explanation
+  - self-contained HTML
+  validators:
+  - uv run ruler validate resource-portfolio
+  - uv run ruler validate deterministic-skills
+- id: cbr-case
+  title: Governed case-based reasoning
+  classification: public
+  hook: cbr-case-reasoning
+  router_visibility: public
+  local_read: true
+  local_write: false
+  external_read: false
+  external_write: false
+  network: false
+  deterministic: true
+  confirmation_required: false
+  inputs:
+  - data/cbr/demonstrations.json
+  - data/use_cases/cbr_workflows.yaml
+  outputs:
+  - build/ruler/cbr/retrieval
+  - build/ruler/cbr/adaptations
+  - build/ruler/cbr/verification
+  validators:
+  - uv run ruler validate cbr
+- id: cbr-benchmark
+  title: Deterministic CBR quality benchmark
+  classification: public
+  hook: cbr-case-reasoning
+  router_visibility: public
+  local_read: true
+  local_write: false
+  external_read: false
+  external_write: false
+  network: false
+  deterministic: true
+  confirmation_required: false
+  inputs:
+  - data/cbr/demonstrations.json
+  outputs:
+  - build/ruler/cbr/benchmark
+  validators:
+  - uv run ruler validate cbr
+- id: cbr-case-library-curation
+  title: Governed case-library curation
+  classification: lifecycle_gate
+  hook: cbr-case-library
+  router_visibility: internal
+  local_read: true
+  local_write: true
+  external_read: false
+  external_write: false
+  network: false
+  deterministic: true
+  confirmation_required: true
+  inputs:
+  - data/cbr/demonstrations.json
+  - data/use_cases/cbr_workflows.yaml
+  outputs:
+  - build/ruler/cbr/curation
+  validators:
+  - uv run ruler validate cbr
+- id: cbr-demonstrators
+  title: Case-based reasoning demonstrators
+  classification: public
+  hook: customer-demonstration
+  router_visibility: public
+  local_read: true
+  local_write: true
+  external_read: false
+  external_write: false
+  network: false
+  deterministic: true
+  confirmation_required: false
+  inputs:
+  - data/cbr/demonstrations.json
+  outputs:
+  - build/ruler/cbr_demonstrators
+  validators:
+  - uv run ruler validate cbr
+- id: workflow-graphs
+  title: Workflow visualization
+  classification: public
+  hook: workflow-visualization
+  router_visibility: public
+- id: workflow-router
+  title: Workflow router catalogue
+  classification: internal_stage
+  hook: workflow-routing
+  parent_workflow: workflow-graphs
+- id: execution-catalogue
+  title: Canonical execution catalogue
+  classification: lifecycle_gate
+  hook: workflow-routing
+  parent_workflow: workflow-graphs
+  outputs:
+  - build/ruler/workflow_execution_catalogue.yaml
+  - build/ruler/workflow_execution_catalogue.md
+- id: generative-kb-quality
+  title: Bounded generative KB quality evaluation
+  classification: lifecycle_gate
+  hook: ingestion-generative-quality
+  parent_workflow: test-generative-release
+  network: true
+  deterministic: false
+  tools:
+  - codex
+  inputs:
+  - data/reference/generative_quality/cases.yaml
+  - data/reference/generative_quality/rubric.yaml
+  - data/reference/generative_quality/verdict.schema.json
+  outputs:
+  - build/ruler/generative_quality
+  release_tier: explicit
+- id: calibrate-generative-judge
+  title: Blind generative judge calibration and recertification
+  classification: lifecycle_gate
+  parent_workflow: test-generative-release
+  command: uv run ruler workflow calibrate-generative-judge
+  network: true
+  deterministic: false
+  tools:
+  - codex
+  inputs:
+  - data/reference/generative_quality/calibration.yaml
+  - data/reference/generative_quality/calibration_fixtures.yaml
+  - data/reference/generative_quality/rubric.yaml
+  - data/reference/generative_quality/verdict.schema.json
+  outputs:
+  - build/ruler/generative_quality/calibration/observations.yaml
+  - build/ruler/generative_quality/calibration/certification.yaml
+  generated_evidence:
+  - schema-valid blind observations
+  - threshold report
+  - model/config recertification hash
+  release_tier: explicit
+- id: inference-dashboard
+  title: Inference dashboard
+  classification: public
+  hook: customer-demonstration
+  router_visibility: public
+- id: kb-visualizer
+  title: Unified knowledge-base visualizer
+  classification: public
+  hook: customer-demonstration
+  router_visibility: public
+  inputs:
+  - kb/manifest.yaml
+  - kb/releases/product_onboarding
+  outputs:
+  - build/ruler/kb_visualizer/index.html
+  validators:
+  - uv run ruler validate kb-visualizer
+- id: progressive-product-onboarding
+  title: Progressive product onboarding plan
+  classification: lifecycle_gate
+  hook: source-ingestion
+  local_read: true
+  local_write: true
+  network: false
+  deterministic: true
+  inputs:
+  - refs/Produit_app_-_OCR-3_restructure.xlsx
+  - data/operations/ingestion_rollout/family_rollout_plan.yaml
+  outputs:
+  - data/operations/progressive_onboarding/plan.yaml
+  - data/operations/progressive_onboarding/progress_ledger.jsonl
+  - data/operations/progressive_onboarding/pipeline_catalogue.yaml
+  - data/operations/progressive_onboarding/pipeline_catalogue.md
+  - data/operations/progressive_onboarding/templates
+  validators:
+  - uv run ruler validate progressive-onboarding
+  - uv run ruler validate batch-pipeline
+- id: product-batch-pipeline
+  title: Portable staged product KB construction
+  classification: lifecycle_gate
+  hook: source-ingestion
+  parent_workflow: progressive-product-onboarding
+  command: uv run ruler workflow product-batch-pipeline --batch-id phase-01-batch-01
+    --stage status
+  local_read: true
+  local_write: true
+  external_read: false
+  external_write: false
+  network: true
+  deterministic: false
+  expected_duration: medium
+  cache_policy: content_hash
+  confirmation_required: false
+  resumable: true
+  release_tier: explicit
+  tools:
+  - codex
+  inputs:
+  - data/operations/progressive_onboarding/pipeline_catalogue.yaml
+  - data/operations/progressive_onboarding/templates
+  - docs/progressive_product_onboarding_runbook.md
+  outputs:
+  - data/operations/progressive_onboarding/batches
+  - data/operations/progressive_onboarding/progress_ledger.jsonl
+  - build/ruler/progressive_onboarding_quality
+  - kb/releases/product_onboarding
+  generated_evidence:
+  - source selection hash
+  - extraction hash
+  - completeness ledger hash
+  - typed candidates
+  - bilingual annotations
+  - deterministic evidence
+  - current-hash generative consensus
+  - coherence proof
+  - immutable release and projection
+  validators:
+  - uv run ruler validate batch-pipeline
+- id: onboarding-checkpoint
+  title: Append one onboarding progress checkpoint
+  classification: internal_stage
+  parent_workflow: progressive-product-onboarding
+  local_read: true
+  local_write: true
+  network: false
+  deterministic: true
+  inputs:
+  - data/operations/progressive_onboarding/plan.yaml
+  - data/operations/progressive_onboarding/progress_ledger.jsonl
+  outputs:
+  - data/operations/progressive_onboarding/progress_ledger.jsonl
+  validators:
+  - uv run ruler validate progressive-onboarding
+- id: kb-statistics
+  title: KB and processed-document descriptive statistics
+  classification: lifecycle_gate
+  parent_workflow: progressive-product-onboarding
+  local_read: true
+  local_write: true
+  network: false
+  deterministic: true
+  inputs:
+  - kb/corpora
+  - data/operations/progressive_onboarding
+  outputs:
+  - build/ruler/kb_statistics/kb_statistics.yaml
+  - build/ruler/kb_statistics/kb_statistics.md
+  validators:
+  - uv run ruler validate kb-statistics
+- id: formalized-kb
+  title: Formalized KB build
+  classification: internal_stage
+  hook: reasoning-control
+  inputs:
+  - kb/corpora
+  outputs:
+  - kb/manifest.yaml
+- id: translation-control
+  title: Controlled translation
+  classification: public
+  hook: translation-control
+  router_visibility: public
+  inputs:
+  - tests/fixtures/translation
+  outputs:
+  - build/ruler/translation_control
+- id: formalization-wave
+  title: Skill-governed complete-KB formalization wave
+  classification: lifecycle_gate
+  hook: formalization-wave
+  local_read: true
+  local_write: true
+  network: false
+  deterministic: true
+  inputs:
+  - data/operations/formalization_waves/templates/formalization_wave_manifest.yaml
+  - data/operations/formalization_waves/waves/vnext-wave-01.yaml
+  - data/operations/formalization_waves/reviewed_overlays/vnext-wave-01.yaml
+  - skills/SKILL_HOOKS.yaml
+  outputs:
+  - build/ruler/formalization_coverage/inventory.yaml
+  - build/ruler/formalization_coverage/coverage.yaml
+  - build/ruler/formalization_coverage/wave_plan.yaml
+  - build/ruler/formalization_coverage/coverage.md
+  generated_evidence:
+  - canonical ten-skill gate decisions
+  - immutable document and span identities
+  - bidirectional atom-to-span grounding
+  - cross-reference blockers
+  - independent textual entailment decisions
+  validators:
+  - uv run ruler validate formalization-wave
+  - uv run ruler validate formalization-coverage
+  - uv run ruler validate formalization-completion
+  - uv run ruler validate formalization-governance
+- id: skill-reasoning-logs
+  title: Catalogue-wide skill reasoning logs
+  classification: public
+  hook: reasoning-log
+  router_visibility: public
+  inputs:
+  - skills/SKILL_HOOKS.yaml
+  - skills
+  outputs:
+  - build/ruler/skill_reasoning_logs/profiles.jsonl
+  - build/ruler/skill_reasoning_logs/profiles.json
+  - build/ruler/skill_reasoning_logs/profiles.yaml
+  - build/ruler/skill_reasoning_logs/profiles.md
+  - build/ruler/skill_reasoning_logs/actual_events.jsonl
+  - build/ruler/skill_reasoning_logs/manifest.yaml
+  generated_evidence:
+  - one normalized observability profile per canonical skill
+  - invocation-backed artifact-level reasoning events
+  - separate capability and execution coverage
+  validators:
+  - uv run ruler validate skill-reasoning-logs
+- id: test-deterministic
+  title: Deterministic repository tests
+  classification: lifecycle_gate
+  hook: ingestion-deterministic-test
+  local_write: false
+  cache_policy: none
+  release_tier: pull_request
+  validators:
+  - uv run pytest -q
+  - uv run ruff check .
+  - git diff --check
+  inputs:
+  - tests
+  - ruler
+  - .ruler/workflows.yaml
+  outputs: []
+  generated_evidence:
+  - test exit status
+- id: test-generative-smoke
+  title: Generative quality smoke tests
+  classification: lifecycle_gate
+  hook: ingestion-generative-quality
+  local_write: false
+  network: true
+  deterministic: false
+  cache_policy: none
+  release_tier: pull_request
+  tools:
+  - codex
+  command: uv run ruler workflow test-generative-smoke
+  inputs:
+  - tests/generative/test_autoformalization_live.py
+  - tests/fixtures/autoformalization
+  - .ruler/workflows.yaml
+  outputs:
+  - build/ruler/generative/smoke
+  generated_evidence:
+  - structured evaluator findings
+  budget:
+    max_cases: 5
+    max_attempts_per_case: 1
+- id: test-generative-release
+  title: Generative release tests
+  classification: lifecycle_gate
+  hook: ingestion-generative-quality
+  local_write: false
+  network: true
+  deterministic: false
+  expected_duration: long
+  cache_policy: exact_provider_model_prompt_source_config_digest_replay_only
+  release_tier: release
+  tools:
+  - codex
+  inputs:
+  - tests/generative
+  - tests/fixtures/autoformalization
+  - .ruler/workflows.yaml
+  outputs:
+  - build/ruler/generative/release
+  generated_evidence:
+  - fresh provider receipts
+  - deterministic gate provenance
+  - structured evaluator findings
+  - stability metrics
+  - automated promotion decision
+  budget:
+    max_cases: 100
+    max_attempts_per_case: 2
+- id: test-generative-local
+  title: Network-free autoformalization replay and deterministic tests
+  classification: lifecycle_gate
+  hook: ingestion-generative-quality
+  local_write: false
+  network: false
+  deterministic: true
+  cache_policy: exact_provider_model_prompt_source_config_digest_replay_only
+  release_tier: local
+  tools: []
+  command: uv run ruler workflow test-generative-local
+  inputs:
+  - tests/testing/test_autoformalization_case_corpus.py
+  - tests/testing/test_autoformalization_profiles.py
+  - tests/kb/test_generative_autoformalization.py
+  - tests/fixtures/autoformalization
+  outputs: []
+  generated_evidence:
+  - fixture integrity
+  - deterministic replay validation
+  - compilation and solver evidence
+- id: test-generative-pr
+  title: Advisory three-style autoformalization producer tests
+  classification: lifecycle_gate
+  hook: ingestion-generative-quality
+  local_write: false
+  network: true
+  deterministic: false
+  cache_policy: none
+  release_tier: pull_request
+  tools:
+  - codex
+  command: uv run ruler workflow test-generative-pr
+  inputs:
+  - tests/generative/test_autoformalization_live.py
+  - tests/fixtures/autoformalization
+  outputs:
+  - build/ruler/generative/pr
+  generated_evidence:
+  - fresh provider receipts
+  - structured candidates
+  budget:
+    max_cases: 3
+    max_attempts_per_case: 2
+- id: test-generative-integration
+  title: Five-style autoformalization producer and blind critic tests
+  classification: lifecycle_gate
+  hook: ingestion-generative-quality
+  local_write: false
+  network: true
+  deterministic: false
+  cache_policy: none
+  release_tier: explicit
+  tools:
+  - codex
+  command: uv run ruler workflow test-generative-integration
+  inputs:
+  - tests/generative/test_autoformalization_live.py
+  - tests/fixtures/autoformalization
+  outputs:
+  - build/ruler/generative/integration
+  generated_evidence:
+  - fresh producer receipts
+  - fresh blind critic receipts
+  - structured candidates
+  budget:
+    max_cases: 5
+    max_attempts_per_case: 2
+- id: test-generative-drift
+  title: Generative quality drift tests
+  classification: lifecycle_gate
+  hook: ingestion-generative-quality
+  local_write: false
+  network: true
+  deterministic: false
+  expected_duration: long
+  cache_policy: exact_provider_model_prompt_source_config_digest_replay_only
+  release_tier: scheduled
+  tools:
+  - codex
+  inputs:
+  - tests/generative
+  - tests/fixtures/autoformalization
+  - .ruler/workflows.yaml
+  outputs:
+  - build/ruler/generative/drift
+  generated_evidence:
+  - fresh provider receipts
+  - deterministic gate provenance
+  - structured evaluator findings
+  - stability metrics
+  - drift report
+  budget:
+    max_cases: 500
+    max_attempts_per_case: 2

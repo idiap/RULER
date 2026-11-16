@@ -1,0 +1,24 @@
+fixture_id: hostile-ingestion-security-v1
+archive_cases:
+  - id: path-traversal
+    member: ../../outside.txt
+    expected_error: ARCHIVE_PATH_TRAVERSAL_REJECTED
+  - id: compression-bomb
+    member: repeated.txt
+    repeated_character_count: 1000000
+    expected_error: ARCHIVE_COMPRESSION_RATIO_EXCEEDED
+workbook_cases:
+  - id: formula
+    member: xl/worksheets/sheet1.xml
+    xml: <worksheet><sheetData><c><f>WEBSERVICE("https://host.invalid")</f></c></sheetData></worksheet>
+    expected_error: WORKBOOK_FORMULA_REJECTED
+  - id: macro
+    member: xl/vbaProject.bin
+    expected_error: WORKBOOK_MACRO_REJECTED
+log_cases:
+  - id: api-key
+    text: api_key=sk-fixtureonlyabcdefghijklmnop
+    expected_finding: credential_assignment
+  - id: safe-policy-text
+    text: The service_fee is CHF 500.
+    expected_findings: []

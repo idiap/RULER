@@ -1,0 +1,51 @@
+# SPDX-FileCopyrightText: Copyright © 2026 Idiap Research Institute <contact@idiap.ch>
+# SPDX-FileContributor: André Freitas <andre.freitas@idiap.ch>
+# SPDX-License-Identifier: LicenseRef-Idiap-Research-Education
+
+name: Restore development evidence
+description: Provision ignored evidence from the reviewed development snapshot.
+runs:
+  using: composite
+  steps:
+    - name: Verify the source-only index before restoring inputs
+      shell: bash
+      run: |
+        python - <<'PYTHON'
+        from pathlib import PurePosixPath
+        import subprocess
+
+        directories = {".idiap-sd", ".claude", ".codex", ".agents", ".opencode", ".gemini", ".cursor"}
+        files = {"AGENTS.md", "CLAUDE.md", "GEMINI.md", ".cursorrules", "copilot-instructions.md"}
+        files |= {name + ".license" for name in files}
+        tracked = subprocess.check_output(["git", "ls-files", "-z"]).decode().split("\0")
+        for name in filter(None, tracked):
+            path = PurePosixPath(name)
+            if path.parts[0] in {"data", "kb", "refs"} or directories.intersection(path.parts) or path.name in files:
+                raise SystemExit(f"Development-only file tracked on the source-only branch: {name}")
+        PYTHON
+    - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      with:
+        ref: cbe06e69eda6902d10a45e22bf80108430695605
+        path: build/development-inputs
+        persist-credentials: false
+        lfs: true
+        sparse-checkout: |
+          data
+          kb
+          refs
+    - name: Copy evidence into the ignored working tree
+      shell: bash
+      run: |
+        python - <<'PYTHON'
+        from pathlib import Path
+        import shutil
+
+        source = Path("build/development-inputs")
+        for name in ("data", "kb", "refs"):
+            bundle = source / name
+            if not bundle.is_dir():
+                raise SystemExit(f"Missing development evidence bundle: {name}")
+            if any(path.is_symlink() for path in bundle.rglob("*")):
+                raise SystemExit(f"Development evidence contains a symlink: {name}")
+            shutil.copytree(bundle, Path(name), dirs_exist_ok=True)
+        PYTHON

@@ -1,0 +1,29 @@
+case_id: legal_conditional_exception_permission
+expected_disposition: candidate_review_required
+semantic_invariants:
+- paragraph 1 is a definition and not an obligation
+- paragraph 2 preserves the licensing authority as actor and applicant as beneficiary
+- complete application and paid fee are conjunctive conditions
+- serious public-safety risk is an explicit exception to the grant obligation
+- paragraph 3 is permission and does not assert that a provisional permit was granted
+- absence of a risk fact is not evidence that no risk exists
+required_mutations:
+- actor
+- modality
+- connective
+- exception
+- polarity
+- source_link
+behavioral_cases:
+- id: complete_paid_no_established_risk
+  expected: grant_permit_supported
+- id: fee_missing
+  expected: grant_permit_not_proved
+- id: serious_risk_established
+  expected: grant_permit_defeated
+- id: safety_review_pending
+  expected: provisional_permit_permitted_not_obligatory
+forbidden_claims:
+- final legal determination
+- official legal authority
+- missing exception fact proves the exception false

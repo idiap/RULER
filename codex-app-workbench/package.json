@@ -1,0 +1,29 @@
+{
+  "name": "codex-app-workbench",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "A safe workbench for Codex SDK threads and dynamically discovered Codex apps.",
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "check": "tsc -p tsconfig.json --noEmit",
+    "test": "node --import tsx --test test/**/*.test.ts",
+    "apps": "npm run build --silent && node dist/src/cli.js apps installed",
+    "app-catalog": "npm run build --silent && node dist/src/cli.js apps list",
+    "brief": "npm run build --silent && node dist/src/cli.js brief",
+    "chat": "npm run build --silent && node dist/src/cli.js chat",
+    "schemas": "codex app-server generate-ts --out schemas"
+  },
+  "dependencies": {
+    "@openai/codex-sdk": "^0.152.0"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "tsx": "^4.20.0",
+    "typescript": "^5.9.0"
+  },
+  "license": "SEE LICENSE IN LICENSE"
+}

@@ -1,0 +1,101 @@
+# SPDX-FileCopyrightText: Copyright © 2026 Idiap Research Institute <contact@idiap.ch>
+# SPDX-FileContributor: André Freitas <andre.freitas@idiap.ch>
+# SPDX-License-Identifier: LicenseRef-Idiap-Research-Education
+
+[project]
+name = "ruler"
+version = "1.0.0"
+description = "Controlled neuro-symbolic reasoning spine for RULER."
+readme = "README.md"
+requires-python = ">=3.12"
+license = "LicenseRef-Idiap-Research-Education"
+license-files = [
+    "LICENSES/LicenseRef-Idiap-Research-Education.txt",
+]
+dependencies = [
+    "alembic>=1.18.0",
+    "click>=8.1.8",
+    "clingo>=5.7.1",
+    "docling>=2.106.0",
+    "fastapi>=0.139.0",
+    "highspy>=1.12.0",
+    "jsonschema>=4.26.0",
+    "mcp>=1.28.0",
+    "openpyxl>=3.1.5",
+    "ortools>=9.14.6206",
+    "pydantic>=2.11.7",
+    "pg8000>=1.31.5",
+    "pypdf>=6.4.1",
+    "pyomo>=6.9.5",
+    "pyyaml>=6.0.2",
+    "rdflib>=7.1.4",
+    "rich>=14.0.0",
+    "scipy>=1.17.0",
+    "sqlalchemy>=2.0.0",
+    "torch==2.12.1",
+    "torchvision==0.27.1",
+    "uvicorn>=0.49.0",
+    "z3-solver>=4.15.1.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "black>=26.10.1",
+    "playwright>=1.60.0",
+    "pyright>=1.1.414",
+    "pytest>=8.4.1",
+    "reuse>=6.2.0",
+    "ruff>=0.12.0",
+    "vulture>=2.16",
+]
+
+[project.scripts]
+ruler = "ruler.cli:main"
+ruler-mcp = "ruler.runtime.mcp_server:main"
+
+[build-system]
+requires = ["hatchling>=1.27.0"]
+build-backend = "hatchling.build"
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.black]
+line-length = 100
+target-version = ["py312"]
+extend-exclude = "/build/"
+
+[tool.pyright]
+include = ["ruler", "scripts", "proj_skills"]
+exclude = ["build", "codex-app-workbench/node_modules", ".venv"]
+pythonVersion = "3.12"
+typeCheckingMode = "basic"
+venvPath = "."
+venv = ".venv"
+
+[tool.vulture]
+# Required Pydantic and SQLAlchemy callback argument names.
+ignore_names = ["__context", "executemany"]
+min_confidence = 80
+exclude = [".venv/", "build/", "codex-app-workbench/node_modules/"]
+
+[dependency-groups]
+dev = [
+    "hypothesis>=6.165.5",
+    "packaging>=25.0",
+]
+
+# The portable container and Linux CI use CPUs. Keep the existing PyTorch versions
+# and non-Linux sources, without downloading unused CUDA libraries on Linux.
+[tool.uv.sources]
+torch = [{ index = "pytorch-cpu", marker = "sys_platform == 'linux'" }]
+torchvision = [{ index = "pytorch-cpu", marker = "sys_platform == 'linux'" }]
+
+[[tool.uv.index]]
+name = "pytorch-cpu"
+url = "https://download.pytorch.org/whl/cpu"
+explicit = true

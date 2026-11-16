@@ -1,0 +1,52 @@
+# SPDX-FileCopyrightText: Copyright © 2026 Idiap Research Institute <contact@idiap.ch>
+# SPDX-FileContributor: André Freitas <andre.freitas@idiap.ch>
+# SPDX-License-Identifier: LicenseRef-Idiap-Research-Education
+
+.venv/
+.ruff_cache/
+.pytest_cache/
+__pycache__/
+*.py[cod]
+build/
+dist/
+*.egg-info/
+.coverage
+htmlcov/
+.DS_Store
+config/live_mcp_web_demo.local.yaml
+/ref/
+/ref_legal/
+/data/activity_sessions/
+/kb/workspaces/
+.terraform/
+*.tfstate
+*.tfstate.*
+*.tfplan
+*.tfvars
+
+# Local disclosure support and assistant/editor configuration.
+/DEPENDENCIES.md
+/UPSTREAM_PROVENANCE.md
+.idiap-sd/
+AGENTS.md
+AGENTS.md.license
+CLAUDE.md
+CLAUDE.md.license
+.claude/
+/.claude-plugin/*.license
+.codex/
+.agents/
+.opencode/
+GEMINI.md
+GEMINI.md.license
+.gemini/
+.cursor/
+.cursorrules
+.cursorrules.license
+.github/copilot-instructions.md
+.github/copilot-instructions.md.license
+
+# Evidence and reference bundles are versioned only on development.
+/data/
+/kb/
+/refs/

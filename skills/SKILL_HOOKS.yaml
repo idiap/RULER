@@ -1,0 +1,1149 @@
+# SPDX-FileCopyrightText: Copyright © 2026 Idiap Research Institute <contact@idiap.ch>
+# SPDX-FileContributor: André Freitas <andre.freitas@idiap.ch>
+# SPDX-License-Identifier: LicenseRef-Idiap-Research-Education
+
+- skill: generative-kb-quality-evaluator
+  stages:
+  - ingestion-deterministic-test
+  - ingestion-generative-quality
+  required_inputs:
+  - data/reference/generative_quality/cases.yaml
+  - data/reference/generative_quality/rubric.yaml
+  - data/reference/generative_quality/verdict.schema.json
+  - data/reference/generative_quality/calibration.yaml
+  - data/reference/generative_quality/calibration_fixtures.yaml
+  required_outputs: []
+  validation_commands:
+  - uv run ruler validate generative-kb-quality
+- skill: progressive-product-onboarding
+  stages:
+  - source-ingestion
+  - ingestion-deterministic-test
+  required_inputs:
+  - data/operations/ingestion_rollout/family_rollout_plan.yaml
+  required_outputs:
+  - data/operations/progressive_onboarding/plan.yaml
+  - data/operations/progressive_onboarding/progress_ledger.jsonl
+  validation_commands:
+  - uv run ruler validate progressive-onboarding
+- skill: execute-progressive-product-batch
+  stages:
+  - source-ingestion
+  - ingestion-deterministic-test
+  - ingestion-generative-quality
+  required_inputs:
+  - data/operations/progressive_onboarding/pipeline_catalogue.yaml
+  - data/operations/progressive_onboarding/templates
+  - docs/operations/progressive_product_onboarding_runbook.md
+  required_outputs:
+  - data/operations/progressive_onboarding/progress_ledger.jsonl
+  - kb/releases/product_onboarding
+  validation_commands:
+  - uv run ruler validate batch-pipeline
+- skill: verify-kb-consistency
+  stages:
+  - formalization-wave
+  - reasoning-control
+  - ingestion-deterministic-test
+  required_inputs:
+  - kb/manifest.yaml
+  - data/operations/progressive_onboarding/progress_ledger.jsonl
+  required_outputs: []
+  validation_commands:
+  - uv run ruler validate progressive-onboarding
+- skill: summarize-kb-statistics
+  stages:
+  - reasoning-control
+  - ingestion-deterministic-test
+  required_inputs:
+  - kb/manifest.yaml
+  required_outputs:
+  - build/ruler/kb_statistics/kb_statistics.yaml
+  - build/ruler/kb_statistics/kb_statistics.md
+  validation_commands:
+  - uv run ruler workflow kb-statistics
+  - uv run ruler validate kb-statistics
+- skill: source-integrity-curator
+  stages:
+  - source-ingestion
+  - pre-commit
+  required_inputs: []
+  required_outputs: []
+  validation_commands:
+  - uv run ruler validate contracts
+  - uv run ruler validate formalized-kb
+- skill: policy-clause-formalizer
+  stages:
+  - formalization-wave
+  - clause-formalization
+  - solver-consistency
+  required_inputs: []
+  required_outputs: []
+  validation_commands:
+  - uv run ruler validate contracts
+  - uv run ruler validate formalized-kb
+- skill: feature-grounding-validator
+  stages:
+  - formalization-wave
+  - feature-grounding
+  - solver-consistency
+  required_inputs: []
+  required_outputs: []
+  validation_commands:
+  - uv run ruler validate contracts
+- skill: tradeoff-solver-ranker
+  stages:
+  - solver-consistency
+  - recommendation-safety
+  required_inputs: []
+  required_outputs:
+  - build/ruler/resource_portfolio/workflow_run/decision_argument.yaml
+  - build/ruler/feature_value_comparison.yaml
+  validation_commands:
+  - uv run ruler validate resource-portfolio
+  - uv run ruler validate formalized-kb
+- skill: recommendation-trace-guardian
+  stages:
+  - solver-consistency
+  - recommendation-safety
+  - communication-control
+  - pre-push
+  required_inputs:
+  - data/domains/construction_fleet/tests/compile.yaml
+  - data/domains/construction_fleet/tests/model.yaml
+  required_outputs:
+  - build/ruler/resource_portfolio/workflow_run/decision_argument.yaml
+  validation_commands:
+  - uv run ruler validate resource-portfolio
+  - uv run ruler validate deterministic-skills
+  execution_mode: deterministic
+  execution_commands:
+  - uv run ruler workflow resource-portfolio-plan
+  implementation_refs:
+  - ruler/applications/resource_portfolio/argumentation.py
+  backend_ids:
+  - pyomo-highs
+  - decimal-independent-verifier
+  fixture_paths:
+  - data/domains/construction_fleet/tests/compile.yaml
+  - data/domains/construction_fleet/tests/model.yaml
+  - data/domains/construction_fleet/tests/explanation.yaml
+  evidence_outputs:
+  - decision_argument.yaml
+- skill: informalization-visualization-agent
+  stages:
+  - recommendation-safety
+  - communication-control
+  required_inputs: []
+  required_outputs:
+  - build/ruler/resource_portfolio_demonstrator/index.html
+  validation_commands:
+  - uv run ruler validate resource-portfolio
+- skill: governance-human-review-gate
+  stages:
+  - recommendation-safety
+  - communication-control
+  - pre-push
+  required_inputs:
+  - .ruler/hooks.yaml
+  required_outputs:
+  - build/ruler/recommendation.yaml
+  validation_commands:
+  - uv run ruler validate all
+- skill: policy-change-impact-analyst
+  stages:
+  - clause-formalization
+  - solver-consistency
+  required_inputs: []
+  required_outputs: []
+  validation_commands:
+  - uv run ruler validate contracts
+- skill: core-reasoning-case-builder
+  stages:
+  - solver-consistency
+  - recommendation-safety
+  - pre-push
+  required_inputs:
+  - data/domains
+  required_outputs: []
+  validation_commands:
+  - uv run pytest -q
+- skill: ruler-workflow-graph-modeler
+  stages:
+  - workflow-visualization
+  - pre-commit
+  required_inputs:
+  - .ruler/hooks.yaml
+  - skills/SKILL_HOOKS.yaml
+  required_outputs:
+  - build/ruler/workflow_graphs/workflow_graphs.json
+  validation_commands:
+  - uv run ruler validate workflow-graphs
+- skill: ruler-workflow-graph-html-reporter
+  stages:
+  - workflow-visualization
+  - pre-commit
+  required_inputs:
+  - .ruler/hooks.yaml
+  - skills/SKILL_HOOKS.yaml
+  required_outputs:
+  - build/ruler/workflow_graphs/workflow_graphs.html
+  validation_commands:
+  - uv run ruler workflow workflow-graphs
+  - uv run ruler validate workflow-graphs
+- skill: ruler-workflow-graph-reporter
+  stages:
+  - workflow-visualization
+  - pre-push
+  required_inputs:
+  - .ruler/hooks.yaml
+  - skills/SKILL_HOOKS.yaml
+  required_outputs:
+  - build/ruler/workflow_graphs/workflow_graphs.json
+  - build/ruler/workflow_graphs/workflow_graphs.html
+  - build/ruler/workflow_graphs/workflow_layout_plan.json
+  validation_commands:
+  - uv run ruler workflow workflow-graphs
+  - uv run ruler validate workflow-graphs
+- skill: ruler-generative-workflow-router
+  stages:
+  - claude-code
+  - cross-platform
+  - mcp-server
+  - opencode
+  - workflow-routing
+  - workflow-visualization
+  - pre-commit
+  - pre-push
+  required_inputs:
+  - data/use_cases/workflow_router.yaml
+  - .ruler/hooks.yaml
+  - skills/SKILL_HOOKS.yaml
+  required_outputs:
+  - build/ruler/workflow_router/workflow_router.yaml
+  - build/ruler/workflow_router/workflow_router.md
+  - build/ruler/workflow_router/sample_route_packets.yaml
+  validation_commands:
+  - uv run ruler workflow workflow-router
+  - uv run ruler validate workflow-router
+  - uv run ruler validate hooks
+- skill: policy-autoformalization-orchestrator
+  stages:
+  - formalization-wave
+  - source-ingestion
+  - clause-formalization
+  - reasoning-control
+  - translation-control
+  - pre-commit
+  required_inputs: []
+  required_outputs:
+  - build/ruler/formalization_coverage/inventory.yaml
+  - build/ruler/formalization_coverage/coverage.yaml
+  - build/ruler/formalization_coverage/wave_plan.yaml
+  validation_commands:
+  - uv run ruler validate translation-control
+  - uv run ruler validate formalization-coverage
+- skill: autoformalization-translation-aligner
+  stages:
+  - formalization-wave
+  - translation-control
+  - reasoning-control
+  - clause-formalization
+  - pre-commit
+  required_inputs: []
+  required_outputs: []
+  validation_commands:
+  - uv run ruler workflow translation-control
+  - uv run ruler validate translation-control
+- skill: vocabulary-predicate-harmonizer
+  stages:
+  - formalization-wave
+  - translation-control
+  - reasoning-control
+  - clause-formalization
+  - workflow-routing
+  - pre-commit
+  required_inputs: []
+  required_outputs: []
+  validation_commands:
+  - uv run ruler validate vocabulary-predicates
+  - uv run ruler validate translation-control
+- skill: vocabulary-drift-auditor
+  stages:
+  - translation-control
+  - reasoning-control
+  - clause-formalization
+  - pre-push
+  required_inputs:
+  - tests/fixtures/translation/approved_predicates.yaml
+  required_outputs: []
+  validation_commands:
+  - uv run ruler validate vocabulary-predicates
+  - uv run ruler validate translation-control
+  - uv run ruler validate skills
+  - uv run ruler validate hooks
+- skill: bilingual-prolog-commentator
+  stages:
+  - formalization-wave
+  - clause-formalization
+  - reasoning-control
+  - translation-control
+  - pre-commit
+  - pre-push
+  required_inputs: []
+  required_outputs: []
+  validation_commands:
+  - uv run ruler validate prolog-nl-comments
+- skill: policy-reasoning-log-guardian
+  stages:
+  - reasoning-control
+  - workflow-routing
+  - pre-commit
+  - pre-push
+  - reasoning-log
+  required_inputs:
+  - skills/SKILL_HOOKS.yaml
+  required_outputs:
+  - build/ruler/skill_reasoning_logs/profiles.jsonl
+  - build/ruler/skill_reasoning_logs/profiles.md
+  - build/ruler/skill_reasoning_logs/actual_events.jsonl
+  - build/ruler/skill_reasoning_logs/manifest.yaml
+  validation_commands:
+  - uv run ruler workflow skill-reasoning-logs
+  - uv run ruler validate skill-reasoning-logs
+- skill: source-text-intake-segmenter
+  stages:
+  - translation-control
+  - source-ingestion
+  - pre-commit
+  required_inputs: []
+  required_outputs: []
+  validation_commands:
+  - uv run ruler validate skills
+  - uv run ruler validate hooks
+- skill: translation-terminology-curator
+  stages:
+  - translation-control
+  - source-ingestion
+  - pre-commit
+  required_inputs: []
+  required_outputs: []
+  validation_commands:
+  - uv run ruler validate skills
+  - uv run ruler validate hooks
+- skill: controlled-english-translator
+  stages:
+  - translation-control
+  - clause-formalization
+  - pre-commit
+  required_inputs: []
+  required_outputs: []
+  validation_commands:
+  - uv run ruler validate skills
+  - uv run ruler validate hooks
+- skill: translation-fidelity-validator
+  stages:
+  - translation-control
+  - clause-formalization
+  - reasoning-control
+  - pre-commit
+  required_inputs: []
+  required_outputs: []
+  validation_commands:
+  - uv run ruler validate skills
+  - uv run ruler validate hooks
+- skill: translation-review-orchestrator
+  stages:
+  - translation-control
+  - source-ingestion
+  - clause-formalization
+  - workflow-routing
+  - pre-commit
+  required_inputs:
+  - .ruler/hooks.yaml
+  - skills/SKILL_HOOKS.yaml
+  required_outputs:
+  - build/ruler/translation_review_packet.yaml
+  validation_commands:
+  - uv run ruler validate skills
+  - uv run ruler validate hooks
+- skill: claude-code-bridge-maintainer
+  stages:
+  - claude-code
+  - workflow-routing
+  - workflow-visualization
+  - pre-commit
+  - pre-push
+  required_inputs:
+  - CLAUDE.md
+  - .claude/skills/ruler-framework-runner/SKILL.md
+  - .claude/skills/ruler-validation-gates/SKILL.md
+  - .claude/skills/ruler-reasoning-workflows/SKILL.md
+  - .claude/skills/ruler-translation-control/SKILL.md
+  - .claude/skills/ruler-claude-bridge-maintainer/SKILL.md
+  - docs/guides/claude_code.md
+  required_outputs:
+  - CLAUDE.md
+  - .claude/skills/ruler-framework-runner/SKILL.md
+  - .claude/skills/ruler-validation-gates/SKILL.md
+  - .claude/skills/ruler-reasoning-workflows/SKILL.md
+  - .claude/skills/ruler-translation-control/SKILL.md
+  - .claude/skills/ruler-claude-bridge-maintainer/SKILL.md
+  validation_commands:
+  - uv run ruler validate claude-code
+  - uv run ruler validate skills
+  - uv run ruler validate hooks
+- skill: opencode-bridge-maintainer
+  stages:
+  - opencode
+  - workflow-routing
+  - workflow-visualization
+  - pre-commit
+  - pre-push
+  required_inputs:
+  - AGENTS.md
+  - .opencode/skills/ruler-framework-runner/SKILL.md
+  - .opencode/skills/ruler-validation-gates/SKILL.md
+  - .opencode/skills/ruler-reasoning-workflows/SKILL.md
+  - .opencode/skills/ruler-translation-control/SKILL.md
+  - .opencode/skills/ruler-opencode-bridge-maintainer/SKILL.md
+  - .opencode/commands/validate.md
+  - .opencode/commands/reason.md
+  - .opencode/commands/graphs.md
+  - docs/guides/opencode.md
+  required_outputs:
+  - AGENTS.md
+  - .opencode/skills/ruler-framework-runner/SKILL.md
+  - .opencode/skills/ruler-validation-gates/SKILL.md
+  - .opencode/skills/ruler-reasoning-workflows/SKILL.md
+  - .opencode/skills/ruler-translation-control/SKILL.md
+  - .opencode/skills/ruler-opencode-bridge-maintainer/SKILL.md
+  - .opencode/commands/validate.md
+  - .opencode/commands/reason.md
+  - .opencode/commands/graphs.md
+  validation_commands:
+  - uv run ruler validate opencode
+  - uv run ruler validate skills
+  - uv run ruler validate hooks
+- skill: cross-platform-runtime-guardian
+  stages:
+  - cross-platform
+  - workflow-routing
+  - workflow-visualization
+  - pre-commit
+  - pre-push
+  required_inputs:
+  - README.md
+  - docs/guides/cross_platform.md
+  - scripts/install_hooks.py
+  - ruler/runtime/hooks.py
+  - .ruler/hooks.yaml
+  required_outputs:
+  - docs/guides/cross_platform.md
+  - scripts/install_hooks.py
+  - ruler/runtime/cross_platform.py
+  validation_commands:
+  - uv run ruler validate cross-platform
+  - uv run ruler validate skills
+  - uv run ruler validate hooks
+- skill: mcp-server-operator
+  stages:
+  - mcp-server
+  - workflow-routing
+  - workflow-visualization
+  - pre-commit
+  - pre-push
+  required_inputs:
+  - data/reference/generative_api_config.yaml
+  - ruler/runtime/api_config.py
+  - ruler/runtime/mcp_server.py
+  - scripts/mcp_server.py
+  - docs/guides/mcp_server.md
+  required_outputs:
+  - data/reference/generative_api_config.yaml
+  - ruler/runtime/mcp_server.py
+  - docs/guides/mcp_server.md
+  validation_commands:
+  - uv run ruler validate api-config
+  - uv run ruler validate mcp-server
+  - uv run ruler validate skills
+  - uv run ruler validate hooks
+- skill: inference-control-interface-designer
+  stages:
+  - customer-demonstration
+  - workflow-visualization
+  - reasoning-control
+  - workflow-routing
+  - pre-commit
+  - pre-push
+  required_inputs:
+  - kb/manifest.yaml
+  required_outputs:
+  - build/ruler/inference_dashboard/index.html
+  - build/ruler/kb_visualizer/index.html
+  validation_commands:
+  - uv run ruler workflow inference-dashboard
+  - uv run ruler validate inference-dashboard
+  - uv run ruler workflow kb-visualizer
+  - uv run ruler validate kb-visualizer
+- skill: formalized-kb-curator
+  stages:
+  - formalization-wave
+  - clause-formalization
+  - reasoning-control
+  - pre-commit
+  - pre-push
+  required_inputs: []
+  required_outputs:
+  - kb/README.md
+  - kb/manifest.yaml
+  validation_commands:
+  - uv run ruler workflow formalized-kb
+  - uv run ruler validate formalized-kb
+  - uv run ruler validate formalization-completion
+  - uv run ruler validate formalization-governance
+- skill: policy-layout-section-scout
+  stages:
+  - source-ingestion
+  - clause-formalization
+  - pre-commit
+  required_inputs: []
+  required_outputs: []
+  validation_commands:
+  - uv run ruler validate contracts
+  - uv run ruler validate skills
+  - uv run ruler validate hooks
+- skill: policy-section-extraction-planner
+  stages:
+  - source-ingestion
+  - clause-formalization
+  - reasoning-control
+  - pre-commit
+  required_inputs: []
+  required_outputs: []
+  validation_commands:
+  - uv run ruler validate skills
+  - uv run ruler validate hooks
+- skill: policy-layout-extraction-auditor
+  stages:
+  - formalization-wave
+  - clause-formalization
+  - reasoning-control
+  - pre-push
+  required_inputs: []
+  required_outputs: []
+  validation_commands:
+  - uv run ruler validate formalized-kb
+  - uv run ruler validate translation-control
+- skill: policy-document-text-extractor
+  stages:
+  - pre-push
+  required_inputs: []
+  required_outputs: []
+  validation_commands:
+  - uv run ruler validate skills
+  - uv run ruler validate hooks
+- skill: recommendation-argument-composer
+  stages:
+  - customer-demonstration
+  - communication-control
+  required_inputs: []
+  required_outputs: []
+  validation_commands:
+  - uv run ruler validate resource-portfolio
+  - uv run ruler validate deterministic-skills
+  execution_mode: hybrid
+  execution_commands:
+  - uv run ruler workflow resource-portfolio-plan
+  - uv run ruler portfolio explain
+  implementation_refs:
+  - ruler/applications/resource_portfolio/argumentation.py
+  - ruler/applications/resource_portfolio/explanations.py
+  backend_ids:
+  - pyomo-highs
+  - decimal-independent-verifier
+  - codex-exec-optional
+  fixture_paths:
+  - data/domains/construction_fleet/tests/explanation.yaml
+  - data/domains/construction_fleet/tests/model.yaml
+  evidence_outputs:
+  - decision_argument.yaml
+  - recommendation_argument.yaml
+- skill: decision-point-explanation-builder
+  stages:
+  - communication-control
+  validation_commands:
+  - uv run ruler validate skills
+  required_inputs: []
+  required_outputs: []
+- skill: cbr-case-intake-normalizer
+  stages:
+  - reasoning-control
+  - cbr-case-reasoning
+  required_inputs:
+  - data/use_cases/cbr_demonstration_blueprints.yaml
+  required_outputs:
+  - build/ruler/cbr/intake/
+  validation_commands:
+  - uv run ruler validate skills
+- skill: cbr-similarity-profile-curator
+  stages:
+  - reasoning-control
+  - cbr-case-library
+  required_inputs:
+  - data/use_cases/cbr_demonstration_blueprints.yaml
+  required_outputs:
+  - build/ruler/cbr/profiles/
+  validation_commands:
+  - uv run ruler validate skills
+- skill: cbr-case-retriever
+  stages:
+  - reasoning-control
+  - cbr-case-reasoning
+  required_inputs:
+  - data/use_cases/cbr_workflows.yaml
+  required_outputs:
+  - build/ruler/cbr/retrieval/
+  validation_commands:
+  - uv run ruler validate skills
+- skill: cbr-retrieval-auditor
+  stages:
+  - reasoning-control
+  - cbr-case-reasoning
+  required_inputs:
+  - data/use_cases/cbr_workflows.yaml
+  required_outputs:
+  - build/ruler/cbr/audits/
+  validation_commands:
+  - uv run ruler validate skills
+- skill: cbr-adaptation-planner
+  stages:
+  - reasoning-control
+  - cbr-case-reasoning
+  required_inputs:
+  - data/use_cases/cbr_workflows.yaml
+  required_outputs:
+  - build/ruler/cbr/adaptations/
+  validation_commands:
+  - uv run ruler validate skills
+- skill: cbr-formal-verification-gate
+  stages:
+  - solver-consistency
+  - reasoning-control
+  - cbr-case-reasoning
+  required_inputs:
+  - data/use_cases/cbr_workflows.yaml
+  required_outputs:
+  - build/ruler/cbr/verification/
+  validation_commands:
+  - uv run ruler validate skills
+- skill: cbr-outcome-retention-curator
+  stages:
+  - reasoning-control
+  - cbr-case-library
+  required_inputs:
+  - data/use_cases/cbr_workflows.yaml
+  required_outputs:
+  - build/ruler/cbr/retention/
+  validation_commands:
+  - uv run ruler validate skills
+- skill: spending-procurement-case-specialist
+  stages:
+  - reasoning-control
+  required_inputs:
+  - data/use_cases/cbr_demonstration_blueprints.yaml
+  required_outputs:
+  - build/ruler/cbr/spending/
+  validation_commands:
+  - uv run ruler validate skills
+- skill: regulatory-deployment-case-specialist
+  stages:
+  - reasoning-control
+  required_inputs:
+  - data/use_cases/cbr_demonstration_blueprints.yaml
+  required_outputs:
+  - build/ruler/cbr/regulatory/
+  validation_commands:
+  - uv run ruler validate skills
+- skill: fiscal-vat-case-specialist
+  stages:
+  - reasoning-control
+  required_inputs:
+  - data/use_cases/cbr_demonstration_blueprints.yaml
+  required_outputs:
+  - build/ruler/cbr/fiscal/
+  validation_commands:
+  - uv run ruler validate skills
+- skill: trade-export-control-case-specialist
+  stages:
+  - reasoning-control
+  required_inputs:
+  - data/use_cases/cbr_demonstration_blueprints.yaml
+  required_outputs:
+  - build/ruler/cbr/trade/
+  validation_commands:
+  - uv run ruler validate skills
+- skill: technical-support-case-specialist
+  stages:
+  - reasoning-control
+  required_inputs:
+  - data/use_cases/cbr_demonstration_blueprints.yaml
+  required_outputs:
+  - build/ruler/cbr/technical_support/
+  validation_commands:
+  - uv run ruler validate skills
+- skill: cbr-demonstration-artifact-builder
+  stages:
+  - customer-demonstration
+  - workflow-visualization
+  required_inputs:
+  - data/use_cases/cbr_demonstration_blueprints.yaml
+  required_outputs:
+  - build/ruler/cbr/demonstrators/
+  validation_commands:
+  - uv run ruler validate skills
+- skill: cbr-case-workflow-orchestrator
+  stages:
+  - workflow-routing
+  - reasoning-control
+  - cbr-case-reasoning
+  required_inputs:
+  - data/use_cases/cbr_workflows.yaml
+  - data/use_cases/cbr_router_intents.yaml
+  required_outputs:
+  - build/ruler/cbr/workflow/
+  validation_commands:
+  - uv run ruler validate skills
+- skill: cbr-case-library-curator
+  stages:
+  - workflow-routing
+  - reasoning-control
+  - cbr-case-library
+  required_inputs:
+  - data/use_cases/cbr_workflows.yaml
+  required_outputs:
+  - build/ruler/cbr/curation/
+  validation_commands:
+  - uv run ruler validate skills
+- skill: legal-semantic-basis-builder
+  stages:
+  - source-ingestion
+  - formalization-wave
+  required_inputs:
+  - kb/corpora/legal-sr101-art36/manifest.yaml
+  required_outputs: []
+  validation_commands:
+  - uv run ruler validate kb-workspace
+- skill: legal-semantic-projection-guard
+  stages:
+  - formalization-wave
+  - solver-consistency
+  required_inputs:
+  - kb/corpora/legal-sr101-art36/manifest.yaml
+  required_outputs: []
+  validation_commands:
+  - uv run ruler validate kb-workspace
+- skill: legal-structured-argumentation-evaluator
+  stages:
+  - reasoning-control
+  - solver-consistency
+  required_inputs:
+  - kb/corpora/legal-sr101-art36/candidate/art36_packet.yaml
+  required_outputs: []
+  validation_commands:
+  - uv run ruler validate kb-workspace
+- skill: legal-proof-certificate-verifier
+  stages:
+  - solver-consistency
+  - reasoning-control
+  required_inputs:
+  - kb/corpora/legal-sr101-art36/manifest.yaml
+  required_outputs: []
+  validation_commands:
+  - uv run ruler validate kb-workspace
+- skill: legal-multi-solver-orchestrator
+  stages:
+  - solver-consistency
+  - reasoning-control
+  required_inputs:
+  - kb/corpora/legal-sr101-art36/manifest.yaml
+  required_outputs: []
+  validation_commands:
+  - uv run ruler validate kb-workspace
+- skill: formal-reasoning-flow-guardian
+  stages:
+  - formalization-wave
+  - solver-consistency
+  - reasoning-control
+  required_inputs:
+  - kb/corpora/legal-sr101-art36/manifest.yaml
+  required_outputs: []
+  validation_commands:
+  - uv run ruler validate kb-workspace
+- skill: resource-operational-evidence-profiler
+  stages:
+  - source-ingestion
+  - solver-consistency
+  required_inputs:
+  - data/domains/construction_fleet/tests/evidence.yaml
+  required_outputs:
+  - build/ruler/resource_portfolio/snapshot.yaml
+  validation_commands:
+  - uv run ruler validate resource-portfolio
+  execution_mode: deterministic
+  execution_commands:
+  - uv run ruler portfolio build-snapshot
+  implementation_refs:
+  - ruler/applications/resource_portfolio/evidence.py
+  - ruler/applications/resource_portfolio/profiles.py
+  - ruler/applications/resource_portfolio/snapshot.py
+  backend_ids:
+  - scipy-optimize
+  - ruler-evidence-sweep-v1
+  fixture_paths:
+  - data/domains/construction_fleet/tests/evidence.yaml
+  evidence_outputs:
+  - normalized_events.yaml
+  - state_intervals.yaml
+  - snapshot.yaml
+- skill: resource-rule-candidate-formalizer
+  stages:
+  - solver-consistency
+  required_inputs:
+  - data/domains/construction_fleet/rules/policies.yaml
+  required_outputs:
+  - build/ruler/resource_portfolio/rule_candidates.yaml
+  validation_commands:
+  - uv run ruler validate resource-portfolio
+  execution_mode: generative
+  execution_commands:
+  - uv run ruler portfolio generate-rule-candidates
+  implementation_refs:
+  - ruler/kb/generative_autoformalization.py
+  - ruler/applications/resource_portfolio/compiler.py
+  backend_ids:
+  - codex-exec
+  - z3
+  fixture_paths:
+  - data/domains/construction_fleet/rules/policies.yaml
+  evidence_outputs:
+  - rule_candidates.yaml
+  - provider_receipt.yaml
+- skill: resource-rule-constraint-compiler
+  stages:
+  - clause-formalization
+  - solver-consistency
+  required_inputs:
+  - data/domains/construction_fleet/tests/compile.yaml
+  required_outputs:
+  - build/ruler/resource_portfolio/compilation.yaml
+  validation_commands:
+  - uv run ruler validate resource-portfolio
+  execution_mode: deterministic
+  execution_commands:
+  - uv run ruler portfolio compile
+  implementation_refs:
+  - ruler/applications/resource_portfolio/compiler.py
+  - ruler/optimization/contracts.py
+  backend_ids:
+  - z3
+  fixture_paths:
+  - data/domains/construction_fleet/tests/compile.yaml
+  evidence_outputs:
+  - compilation.yaml
+- skill: resource-portfolio-plan-optimizer
+  stages:
+  - solver-consistency
+  - recommendation-safety
+  required_inputs:
+  - data/domains/construction_fleet/tests/compile.yaml
+  required_outputs:
+  - build/ruler/resource_portfolio/verified_plan.yaml
+  validation_commands:
+  - uv run ruler validate resource-portfolio
+  execution_mode: deterministic
+  execution_commands:
+  - uv run ruler portfolio optimize
+  - uv run ruler portfolio verify-plan
+  implementation_refs:
+  - ruler/optimization/highs.py
+  - ruler/optimization/verification.py
+  - ruler/applications/resource_portfolio/optimization.py
+  backend_ids:
+  - pyomo-highs
+  - decimal-independent-verifier
+  fixture_paths:
+  - data/domains/construction_fleet/tests/compile.yaml
+  evidence_outputs:
+  - verified_plan.yaml
+  - verification.yaml
+- skill: resource-operational-schedule-optimizer
+  stages:
+  - solver-consistency
+  - recommendation-safety
+  required_inputs:
+  - data/domains/construction_fleet/tests/schedule.yaml
+  required_outputs:
+  - build/ruler/resource_portfolio/schedule.yaml
+  validation_commands:
+  - uv run ruler validate resource-portfolio
+  execution_mode: deterministic
+  execution_commands:
+  - uv run ruler portfolio schedule
+  implementation_refs:
+  - ruler/applications/resource_portfolio/scheduling.py
+  backend_ids:
+  - ortools-cp-sat
+  fixture_paths:
+  - data/domains/construction_fleet/tests/schedule.yaml
+  evidence_outputs:
+  - schedule.yaml
+- skill: resource-scenario-robustness-analyst
+  stages:
+  - solver-consistency
+  - recommendation-safety
+  required_inputs:
+  - data/domains/construction_fleet/tests/stress.yaml
+  required_outputs:
+  - build/ruler/resource_portfolio/stress.yaml
+  validation_commands:
+  - uv run ruler validate resource-portfolio
+  execution_mode: deterministic
+  execution_commands:
+  - uv run ruler portfolio stress
+  implementation_refs:
+  - ruler/applications/resource_portfolio/robustness.py
+  - ruler/optimization/highs.py
+  backend_ids:
+  - pyomo-highs
+  fixture_paths:
+  - data/domains/construction_fleet/tests/stress.yaml
+  evidence_outputs:
+  - stress.yaml
+- skill: resource-scenario-coverage-explainer
+  stages:
+  - resource-portfolio
+  - recommendation-safety
+  - customer-demonstration
+  required_inputs:
+  - data/domains/construction_fleet/tests/model.yaml
+  - data/domains/construction_fleet/tests/stress.yaml
+  required_outputs:
+  - build/ruler/resource_portfolio/scenario_envelope_explanation.yaml
+  validation_commands:
+  - uv run ruler validate resource-portfolio
+  - uv run ruler validate deterministic-skills
+  execution_mode: deterministic
+  execution_commands:
+  - uv run ruler workflow resource-portfolio-plan
+  - uv run ruler portfolio stress
+  implementation_refs:
+  - ruler/applications/resource_portfolio/explanation_records.py
+  - ruler/applications/resource_portfolio/robustness.py
+  - ruler/applications/resource_portfolio/argumentation.py
+  backend_ids:
+  - pyomo-highs
+  - decimal-independent-verifier
+  fixture_paths:
+  - data/domains/construction_fleet/tests/model.yaml
+  - data/domains/construction_fleet/tests/stress.yaml
+  evidence_outputs:
+  - scenario_envelope_explanation.yaml
+  - stress.yaml
+  - decision_argument.yaml
+- skill: resource-cost-objective-explainer
+  stages:
+  - resource-portfolio
+  - recommendation-safety
+  - customer-demonstration
+  required_inputs:
+  - data/domains/construction_fleet/tests/model.yaml
+  required_outputs:
+  - build/ruler/resource_portfolio/cost_objective_explanation.yaml
+  validation_commands:
+  - uv run ruler validate resource-portfolio
+  - uv run ruler validate deterministic-skills
+  execution_mode: deterministic
+  execution_commands:
+  - uv run ruler workflow resource-portfolio-plan
+  - uv run ruler portfolio optimize
+  - uv run ruler portfolio verify-plan
+  implementation_refs:
+  - ruler/applications/resource_portfolio/explanation_records.py
+  - ruler/applications/resource_portfolio/optimization.py
+  - ruler/applications/resource_portfolio/argumentation.py
+  - ruler/applications/resource_portfolio/demonstrator_grounding.py
+  backend_ids:
+  - pyomo-highs
+  - decimal-independent-verifier
+  fixture_paths:
+  - data/domains/construction_fleet/tests/model.yaml
+  evidence_outputs:
+  - cost_objective_explanation.yaml
+  - verified_plan.yaml
+  - decision_argument.yaml
+- skill: resource-portfolio-workflow-orchestrator
+  stages:
+  - resource-portfolio
+  - reasoning-control
+  - recommendation-safety
+  required_inputs:
+  - data/domains/construction_fleet/tests
+  required_outputs:
+  - build/ruler/resource_portfolio/workflow_run.yaml
+  validation_commands:
+  - uv run ruler validate resource-portfolio
+  - uv run ruler validate deterministic-skills
+  execution_mode: hybrid
+  execution_commands:
+  - uv run ruler workflow resource-portfolio-plan
+  implementation_refs:
+  - ruler/applications/resource_portfolio/workflow.py
+  backend_ids:
+  - z3
+  - pyomo-highs
+  - ortools-cp-sat
+  - codex-exec-optional
+  fixture_paths:
+  - data/domains/construction_fleet/tests
+  evidence_outputs:
+  - workflow_run.yaml
+  - evidence.yaml
+  - snapshot.yaml
+  - compilation.yaml
+  - plan.yaml
+  - schedule.yaml
+  - stress.yaml
+  - counterfactual.yaml
+  - explanation.yaml
+  - review.yaml
+- skill: resource-portfolio-synthetic-data-generator
+  stages:
+  - resource-portfolio
+  - solver-consistency
+  - recommendation-safety
+  required_inputs:
+  - data/domains/construction_fleet/synthetic/default.yaml
+  required_outputs:
+  - build/ruler/resource_portfolio_synthetic/synthetic_manifest.yaml
+  - build/ruler/resource_portfolio_synthetic/synthetic_test.yaml
+  validation_commands:
+  - uv run ruler validate resource-portfolio
+  - uv run ruler validate deterministic-skills
+  execution_mode: deterministic
+  execution_commands:
+  - uv run ruler portfolio generate-synthetic
+  implementation_refs:
+  - ruler/applications/resource_portfolio/synthetic.py
+  - ruler/applications/resource_portfolio/workflow.py
+  backend_ids:
+  - z3
+  - pyomo-highs
+  - decimal-independent-verifier
+  - ortools-cp-sat
+  fixture_paths:
+  - data/domains/construction_fleet/synthetic/default.yaml
+  - data/domains/construction_fleet/synthetic/infeasible.yaml
+  - data/domains/construction_fleet/synthetic/scaled.yaml
+  evidence_outputs:
+  - synthetic_manifest.yaml
+  - synthetic_test.yaml
+  - workflow_run/workflow_run.yaml
+  - infeasibility.yaml
+- skill: resource-portfolio-grounded-demonstrator
+  stages:
+  - resource-portfolio
+  - solver-consistency
+  - recommendation-safety
+  - customer-demonstration
+  required_inputs:
+  - data/domains/construction_fleet/demonstrator/alpine_station_expansion_dossier.md
+  - data/domains/construction_fleet/demonstrator/claim_manifest.yaml
+  required_outputs:
+  - build/ruler/resource_portfolio_demonstrator/index.html
+  - build/ruler/resource_portfolio_demonstrator/accepted_rules.html
+  - build/ruler/resource_portfolio_demonstrator/accepted_kb.lp
+  - build/ruler/resource_portfolio_demonstrator/accepted_kb.pl
+  - build/ruler/resource_portfolio_demonstrator/accepted_kb_manifest.yaml
+  - build/ruler/resource_portfolio_demonstrator/formal_logic_release.yaml
+  - build/ruler/resource_portfolio_demonstrator/demonstrator_run.yaml
+  validation_commands:
+  - uv run ruler validate resource-portfolio
+  - uv run ruler validate deterministic-skills
+  execution_mode: hybrid
+  execution_commands:
+  - uv run ruler workflow resource-portfolio-demonstrator
+  implementation_refs:
+  - ruler/applications/resource_portfolio/demonstrator.py
+  - ruler/applications/resource_portfolio/demonstrator_formalization.py
+  - ruler/applications/resource_portfolio/demonstrator_approved_kb.py
+  - ruler/applications/resource_portfolio/demonstrator_grounding.py
+  - ruler/kb/asp_compiler.py
+  - ruler/kb/prolog_compiler.py
+  - ruler/interfaces/resource_portfolio_demonstrator.py
+  backend_ids:
+  - codex-exec
+  - logical-ir-asp-validation-v1
+  - swi-prolog-horn-crosscheck-v1
+  - z3
+  - pyomo-highs
+  - decimal-independent-verifier
+  - ortools-cp-sat
+  fixture_paths:
+  - data/domains/construction_fleet/demonstrator/alpine_station_expansion_dossier.md
+  - data/domains/construction_fleet/demonstrator/claim_manifest.yaml
+  evidence_outputs:
+  - formalization.yaml
+  - accepted_rules.html
+  - accepted_kb.lp
+  - accepted_kb.pl
+  - accepted_kb_manifest.yaml
+  - formal_logic_release.yaml
+  - grounding.yaml
+  - generative_explanation.yaml
+  - workflow/workflow_run.yaml
+  - index.html
+  - demonstrator_run.yaml
+- skill: resource-decision-tradeoff-communicator
+  stages:
+  - resource-portfolio
+  - recommendation-safety
+  - customer-demonstration
+  - communication-control
+  required_inputs:
+  - data/domains/construction_fleet/demonstrator/alpine_station_expansion_dossier.md
+  - data/domains/construction_fleet/tests/model.yaml
+  - data/domains/construction_fleet/tests/stress.yaml
+  required_outputs:
+  - build/ruler/resource_portfolio_demonstrator/index.html
+  validation_commands:
+  - uv run ruler validate resource-portfolio
+  - uv run ruler validate deterministic-skills
+  execution_mode: hybrid
+  execution_commands:
+  - uv run ruler workflow resource-portfolio-demonstrator
+  implementation_refs:
+  - ruler/applications/resource_portfolio/argumentation.py
+  - ruler/applications/resource_portfolio/explanation_records.py
+  - ruler/interfaces/resource_portfolio_demonstrator.py
+  backend_ids:
+  - codex-exec
+  - pyomo-highs
+  - decimal-independent-verifier
+  fixture_paths:
+  - data/domains/construction_fleet/demonstrator/alpine_station_expansion_dossier.md
+  - data/domains/construction_fleet/tests/model.yaml
+  - data/domains/construction_fleet/tests/stress.yaml
+  evidence_outputs:
+  - decision_argument.yaml
+  - cost_objective_explanation.yaml
+  - scenario_envelope_explanation.yaml
+  - index.html
+- skill: policy-source-formalization-drift-guard
+  stages:
+  - formalization-wave
+  required_inputs:
+  - kb/corpora
+  required_outputs: []
+  validation_commands:
+  - uv run ruler validate formalization-governance

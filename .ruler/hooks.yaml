@@ -1,0 +1,409 @@
+# SPDX-FileCopyrightText: Copyright © 2026 Idiap Research Institute <contact@idiap.ch>
+# SPDX-FileContributor: André Freitas <andre.freitas@idiap.ch>
+# SPDX-License-Identifier: LicenseRef-Idiap-Research-Education
+
+hooks:
+- hook: resource-portfolio
+  description: Execute the deterministic resource portfolio solver chain and verify
+    all advisory artifacts.
+  commands:
+  - name: resource-portfolio-plan
+    command: uv run ruler workflow resource-portfolio-plan
+    required: true
+    local_write: true
+    deterministic: true
+  - name: validate-resource-portfolio
+    command: uv run ruler validate resource-portfolio
+    required: true
+    local_write: false
+    deterministic: true
+- hook: cbr-case-reasoning
+  description: Enforce deterministic retrieve, audit, adapt, current-rule verification,
+    and human-review ordering for case-based reasoning.
+  commands:
+  - name: cbr-case-plan
+    command: uv run ruler workflow cbr-case
+    required: true
+    local_write: false
+    deterministic: true
+  - name: validate-cbr
+    command: uv run ruler validate cbr
+    required: true
+    local_write: false
+    deterministic: true
+- hook: cbr-case-library
+  description: Validate reviewed, de-identified, digest-pinned case-library publication,
+    retirement, and re-evaluation controls.
+  commands:
+  - name: cbr-case-library-plan
+    command: uv run ruler workflow cbr-case-library-curation
+    required: true
+    local_write: false
+    deterministic: true
+  - name: validate-cbr
+    command: uv run ruler validate cbr
+    required: true
+    local_write: false
+    deterministic: true
+- hook: ingestion-deterministic-test
+  description: Run deterministic ingestion and repository quality tests without network
+    access.
+  commands:
+  - name: deterministic-tests
+    command: uv run ruler workflow test-deterministic
+    required: true
+    local_write: false
+    deterministic: true
+    expected_duration: long
+    cache_policy: none
+- hook: ingestion-generative-quality
+  description: Describe controlled generative quality suites; execution is delegated
+    to the separately governed evaluator harness.
+  commands:
+  - name: generative-smoke
+    command: uv run ruler workflow test-generative-smoke
+    required: true
+    local_write: false
+    network: false
+    deterministic: true
+    expected_duration: short
+    cache_policy: none
+  - name: generative-release
+    command: uv run ruler workflow test-generative-release
+    required: true
+    local_write: false
+    network: false
+    deterministic: true
+    expected_duration: short
+    cache_policy: none
+  - name: generative-drift
+    command: uv run ruler workflow test-generative-drift
+    required: true
+    local_write: false
+    network: false
+    deterministic: true
+    expected_duration: short
+    cache_policy: none
+- hook: source-ingestion
+  description: Check that source inventory records carry URI, version/hash, category,
+    and extraction quality.
+  commands:
+  - name: contracts
+    command: uv run ruler validate contracts
+    required: true
+- hook: formalization-wave
+  description: Enforce the canonical ten-skill sequence, immutable document grounding,
+    bidirectional entailment, and explicit per-wave release evidence.
+  commands:
+  - name: formalization-wave
+    command: uv run ruler workflow formalization-wave
+    required: true
+  - name: validate-formalization-wave
+    command: uv run ruler validate formalization-wave
+    required: true
+  - name: validate-formalization-coverage
+    command: uv run ruler validate formalization-coverage
+    required: true
+  - name: validate-formalization-completion
+    command: uv run ruler validate formalization-completion
+    required: true
+  - name: validate-formalization-governance
+    command: uv run ruler validate formalization-governance
+    required: true
+- hook: clause-formalization
+  description: Validate clause graph and policy-rule contracts before promotion.
+  commands:
+  - name: contracts
+    command: uv run ruler validate contracts
+    required: true
+- hook: feature-grounding
+  description: Block verified product features that lack policy-clause grounding.
+  commands:
+  - name: contracts
+    command: uv run ruler validate contracts
+    required: true
+- hook: solver-consistency
+  description: Run dependency, contract, and sample solver checks.
+  commands:
+  - name: validate-all
+    command: uv run ruler validate all
+    required: true
+- hook: recommendation-safety
+  description: Run the end-to-end recommendation trace and hard-control checks.
+  commands:
+  - name: resource-portfolio
+    command: uv run ruler validate resource-portfolio
+    required: true
+- hook: communication-control
+  description: Ensure every generated advisor card remains trace-bound and human-review
+    gated.
+  commands:
+  - name: validate-all
+    command: uv run ruler validate all
+    required: true
+- hook: workflow-visualization
+  description: Generate and validate workflow graph JSON, layout plan, and HTML inspection
+    reports.
+  commands:
+  - name: workflow-graphs
+    command: uv run ruler workflow workflow-graphs
+    required: true
+  - name: validate-workflow-graphs
+    command: uv run ruler validate workflow-graphs
+    required: true
+- hook: workflow-routing
+  description: Generate and validate the generative-facing router from intents to
+    known workflows, skills, commands, and artifacts.
+  commands:
+  - name: execution-catalogue
+    command: uv run ruler workflow execution-catalogue
+    required: true
+    local_write: true
+    deterministic: true
+    expected_duration: short
+    cache_policy: content_hash
+  - name: workflow-router
+    command: uv run ruler workflow workflow-router
+    required: true
+  - name: validate-workflow-router
+    command: uv run ruler validate workflow-router
+    required: true
+- hook: customer-demonstration
+  description: Generate attractive customer demonstrator catalogues from live reasoning
+    use cases and control proofs.
+  commands:
+  - name: inference-dashboard
+    command: uv run ruler workflow inference-dashboard
+    required: true
+  - name: validate-inference-dashboard
+    command: uv run ruler validate inference-dashboard
+    required: true
+  - name: kb-visualizer
+    command: uv run ruler workflow kb-visualizer
+    required: true
+  - name: validate-kb-visualizer
+    command: uv run ruler validate kb-visualizer
+    required: true
+- hook: reasoning-control
+  description: Generate and validate bilingual translation, vocabulary-predicate harmonization,
+    formalization, semantic-preservation, gate, reflection, robustness, temporal,
+    portfolio, explanation, and solver cross-check controls.
+  commands:
+  - name: formalized-kb
+    command: uv run ruler workflow formalized-kb
+    required: true
+  - name: validate-formalized-kb
+    command: uv run ruler validate formalized-kb
+    required: true
+  - name: translation-control
+    command: uv run ruler validate translation-control
+    required: true
+  - name: vocabulary-predicates
+    command: uv run ruler validate vocabulary-predicates
+    required: true
+  - name: prolog-nl-comments
+    command: uv run ruler validate prolog-nl-comments
+    required: true
+- hook: translation-control
+  description: Validate the controlled source-language to English translation skill
+    chain and keep translation promotion explicit before reasoning use.
+  commands:
+  - name: translation-control-workflow
+    command: uv run ruler workflow translation-control
+    required: true
+  - name: translation-control
+    command: uv run ruler validate translation-control
+    required: true
+  - name: vocabulary-predicates
+    command: uv run ruler validate vocabulary-predicates
+    required: true
+  - name: prolog-nl-comments
+    command: uv run ruler validate prolog-nl-comments
+    required: true
+  - name: skills
+    command: uv run ruler validate skills
+    required: true
+  - name: hooks
+    command: uv run ruler validate hooks
+    required: true
+- hook: claude-code
+  description: Validate Claude Code project memory, Claude-facing skills, docs, and
+    bridge commands.
+  commands:
+  - name: claude-code
+    command: uv run ruler validate claude-code
+    required: true
+  - name: skills
+    command: uv run ruler validate skills
+    required: true
+  - name: hooks
+    command: uv run ruler validate hooks
+    required: true
+- hook: opencode
+  description: Validate OpenCode project instructions, OpenCode-facing skills, commands,
+    docs, and bridge commands.
+  commands:
+  - name: opencode
+    command: uv run ruler validate opencode
+    required: true
+  - name: skills
+    command: uv run ruler validate skills
+    required: true
+  - name: hooks
+    command: uv run ruler validate hooks
+    required: true
+- hook: cross-platform
+  description: Validate macOS, Linux, and Windows setup paths, shell-independent hook
+    execution, and portable artifact identifiers.
+  commands:
+  - name: cross-platform
+    command: uv run ruler validate cross-platform
+    required: true
+  - name: skills
+    command: uv run ruler validate skills
+    required: true
+  - name: hooks
+    command: uv run ruler validate hooks
+    required: true
+- hook: mcp-server
+  description: Validate the MCP server, allowlisted MCP tools/resources, and redacted
+    generative API configuration.
+  commands:
+  - name: api-config
+    command: uv run ruler validate api-config
+    required: true
+  - name: mcp-server
+    command: uv run ruler validate mcp-server
+    required: true
+  - name: skills
+    command: uv run ruler validate skills
+    required: true
+  - name: hooks
+    command: uv run ruler validate hooks
+    required: true
+- hook: pre-commit
+  description: Fast local gate before committing controlled reasoning changes.
+  commands:
+  - name: contracts
+    command: uv run ruler validate contracts
+    required: true
+  - name: skills
+    command: uv run ruler validate skills
+    required: true
+  - name: hooks
+    command: uv run ruler validate hooks
+    required: true
+  - name: workflow-graphs
+    command: uv run ruler validate workflow-graphs
+    required: true
+  - name: workflow-router
+    command: uv run ruler validate workflow-router
+    required: true
+  - name: formalized-kb
+    command: uv run ruler validate formalized-kb
+    required: true
+  - name: formalization-wave
+    command: uv run ruler validate formalization-wave
+    required: true
+  - name: formalization-coverage
+    command: uv run ruler validate formalization-coverage
+    required: true
+  - name: formalization-completion
+    command: uv run ruler validate formalization-completion
+    required: true
+  - name: formalization-governance
+    command: uv run ruler validate formalization-governance
+    required: true
+  - name: translation-control
+    command: uv run ruler validate translation-control
+    required: true
+  - name: vocabulary-predicates
+    command: uv run ruler validate vocabulary-predicates
+    required: true
+  - name: prolog-nl-comments
+    command: uv run ruler validate prolog-nl-comments
+    required: true
+  - name: claude-code
+    command: uv run ruler validate claude-code
+    required: true
+  - name: opencode
+    command: uv run ruler validate opencode
+    required: true
+  - name: cross-platform
+    command: uv run ruler validate cross-platform
+    required: true
+  - name: api-config
+    command: uv run ruler validate api-config
+    required: true
+  - name: mcp-server
+    command: uv run ruler validate mcp-server
+    required: true
+  - name: inference-dashboard
+    command: uv run ruler validate inference-dashboard
+    required: true
+- hook: pre-push
+  description: Full deterministic gate before publishing controlled reasoning changes.
+  commands:
+  - name: validate-all
+    command: uv run ruler validate all
+    required: true
+  - name: workflow-graphs
+    command: uv run ruler workflow workflow-graphs
+    required: true
+  - name: workflow-router
+    command: uv run ruler workflow workflow-router
+    required: true
+  - name: inference-dashboard
+    command: uv run ruler workflow inference-dashboard
+    required: true
+  - name: formalized-kb
+    command: uv run ruler workflow formalized-kb
+    required: true
+  - name: validate-formalized-kb
+    command: uv run ruler validate formalized-kb
+    required: true
+  - name: formalization-wave
+    command: uv run ruler validate formalization-wave
+    required: true
+  - name: formalization-coverage
+    command: uv run ruler validate formalization-coverage
+    required: true
+  - name: formalization-completion
+    command: uv run ruler validate formalization-completion
+    required: true
+  - name: formalization-governance
+    command: uv run ruler validate formalization-governance
+    required: true
+  - name: translation-control
+    command: uv run ruler validate translation-control
+    required: true
+  - name: vocabulary-predicates
+    command: uv run ruler validate vocabulary-predicates
+    required: true
+  - name: prolog-nl-comments
+    command: uv run ruler validate prolog-nl-comments
+    required: true
+  - name: claude-code
+    command: uv run ruler validate claude-code
+    required: true
+  - name: opencode
+    command: uv run ruler validate opencode
+    required: true
+  - name: cross-platform
+    command: uv run ruler validate cross-platform
+    required: true
+  - name: api-config
+    command: uv run ruler validate api-config
+    required: true
+  - name: mcp-server
+    command: uv run ruler validate mcp-server
+    required: true
+  - name: pytest
+    command: uv run ruler validate tests
+    required: true
+- hook: reasoning-log
+  description: Validate artifact-level skill observability records.
+  commands:
+  - name: validate-skill-reasoning-logs
+    command: uv run ruler validate skill-reasoning-logs
+    required: true

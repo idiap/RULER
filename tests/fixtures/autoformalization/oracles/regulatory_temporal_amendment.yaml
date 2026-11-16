@@ -1,0 +1,32 @@
+case_id: regulatory_temporal_amendment
+expected_disposition: candidate_review_required
+semantic_invariants:
+  - the original interval includes both 1 January and 31 March 2026
+  - exceeds 100 means 100 does not trigger and 101 does
+  - from 1 April 2026 the threshold is 75 and the deadline is 5 calendar days
+  - the undertaking exception applies only below 10 employees
+  - old and amended provisions must not be merged into a hybrid rule
+  - a deadline exactly N calendar days after the triggering event is timely
+required_mutations:
+  - quantity
+  - temporal
+  - connective
+  - exception
+  - precedence
+behavioral_cases:
+  - id: events_100_on_2026_03_31
+    expected: notice_not_triggered
+  - id: events_101_on_2026_03_31
+    expected: ten_day_notice_triggered
+  - id: events_76_on_2026_04_01
+    expected: five_day_notice_triggered
+  - id: nine_employees
+    expected: undertaking_exception_applies
+  - id: ten_employees
+    expected: undertaking_exception_does_not_apply
+  - id: submission_exactly_on_deadline
+    expected: within_deadline
+forbidden_claims:
+  - version-hybrid threshold or deadline
+  - fewer than 10 includes 10
+  - absence of submission evidence proves notice missing
